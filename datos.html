@@ -2,31 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Innova - Panel de Datos</title>
     <link rel="stylesheet" href="style.css">
+    <!-- CDN Obligatorio de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="contenedor-ancho">
-        <h2>Datos de la Base de Datos (Tabla Clientes)</h2>
-        <button onclick="cargarClientes()">Cargar / Actualizar Lista</button>
+    <main class="contenedor-ancho">
+        <header class="encabezado-panel">
+            <h2>Datos de la Base de Datos (Tabla Clientes)</h2>
+            <button onclick="cargarClientes()" class="btn-accion">Cargar / Actualizar Lista</button>
+        </header>
         
-        <table border="1" id="tabla-clientes">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Empresa</th>
-                    <th>Teléfono</th>
-                    <th>Ciudad</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpo-tabla">
+        <section class="seccion-tabla">
+            <table id="tabla-clientes">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Empresa</th>
+                        <th>Teléfono</th>
+                        <th>Ciudad</th>
+                    </tr>
+                </thead>
+                <!-- El id cuerpo-tabla debe ser idéntico en conexion.js -->
+                <tbody id="cuerpo-tabla">
+                    <!-- Las filas cargadas desde PostgreSQL aparecerán aquí dinámicamente -->
                 </tbody>
-        </table>
-        <br>
-        <a href="index.html">Cerrar Sesión</a>
-    </div>
+            </table>
+        </section>
+        
+        <footer>
+            <br>
+            <a href="index.html" class="enlace-salir">Cerrar Sesión</a>
+        </footer>
+    </main>
 
     <script src="conexion.js"></script>
 </body>
