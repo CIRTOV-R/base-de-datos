@@ -1,7 +1,7 @@
 // CONFIGURACIÓN DE TU PROYECTO SUPABASE
 // (Reemplaza con tus datos reales de Project Settings > API en Supabase)
-const SUPABASE_URL = "https://TU_PROYECTO.supabase.co";
-const SUPABASE_ANON_KEY = "TU_CLAVE_ANONIMA_DE_SUPABASE";
+const SUPABASE_URL = "https://base-de-datos-cirtov.netlify.app";
+const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
 
 // Inicializar el cliente de Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
