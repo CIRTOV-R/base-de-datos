@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Innova - Panel de Datos</title>
     <link rel="stylesheet" href="style.css">
-    <!-- CDN Obligatorio de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <main class="contenedor-ancho">
         <header class="encabezado-panel">
-            <h2>Datos de la Base de Datos (Tabla Clientes)</h2>
-            <button onclick="cargarClientes()" class="btn-accion">Cargar / Actualizar Lista</button>
+            <h2>Panel de Control - Empresa Innova</h2>
+            <button onclick="cargarTodo()" class="btn-accion">Actualizar Tablas</button>
         </header>
         
         <section class="seccion-tabla">
-            <table id="tabla-clientes">
+            <h3>Lista de Clientes</h3><br>
+            <table>
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -26,10 +26,27 @@
                         <th>Ciudad</th>
                     </tr>
                 </thead>
-                <!-- El id cuerpo-tabla debe ser idéntico en conexion.js -->
                 <tbody id="cuerpo-tabla">
-                    <!-- Las filas cargadas desde PostgreSQL aparecerán aquí dinámicamente -->
-                </tbody>
+                    </tbody>
+            </table>
+        </section>
+
+        <br><hr><br>
+
+        <section class="seccion-tabla">
+            <h3>Inventario de Productos</h3><br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-productos">
+                    </tbody>
             </table>
         </section>
         

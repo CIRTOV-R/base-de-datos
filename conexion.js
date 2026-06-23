@@ -1,101 +1,155 @@
+// ==========================================
 // CONFIGURACIÓN DE TU PROYECTO SUPABASE
-// (Reemplaza con tus datos reales de Project Settings > API en Supabase)
-const SUPABASE_URL = "https://heshjmfxuxiczjllnmnp.supabase.co";
+// ==========================================
+const SUPABASE_URL = "https://heshjmfxuxiczjllnmnp.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
 
 // Inicializar el cliente de Supabase
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Asegurar que el código corra cuando el HTML esté completamente cargado
+// ==========================================
+// DETECTOR DE CARGA DEL DOCUMENTO (DOM)
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     
-    // === FUNCIONALIDAD: REGISTRAR USUARIO ===
-    const formRegistro = document.getElementById('form-registro');
-    if (formRegistro) {
-        formRegistro.addEventListener('submit', async (e) => {
+    // --- LÓGICA: FORMULARIO DE LOGIN (index.html) ---
+    const formLogin = document.getElementById("form-login");
+    if (formLogin) {
+        formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById('reg-nombre').value;
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-pass').value;
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
 
-            // Inserta el nuevo usuario en la tabla de Supabase
-            const { data, error } = await supabaseClient
-                .from('usuarios')
+            // Consultar en la tabla usuarios
+            const { data: usuarios, error } = await supabaseClient
+                .from("usuarios")
+                .select("*")
+                .eq("email", email)
+                .eq("password", password);
+
+            if (error) {
+                alert("Error en el servidor: " + error.message);
+                return;
+            }
+
+            if (usuarios && usuarios.length > 0) {
+                // Credenciales correctas -> Redirecciona al panel
+                window.location.href = "datos.html";
+            } else {
+                alert("Credenciales incorrectas o usuario inexistente.");
+            }
+        });
+    }
+
+    // --- LÓGICA: FORMULARIO DE REGISTRO (registro.html) ---
+    const formRegistro = document.getElementById("form-registro");
+    if (formRegistro) {
+        formRegistro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById("nombre").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+
+            // Insertar nuevo usuario en la tabla usuarios
+            const { error } = await supabaseClient
+                .from("usuarios")
                 .insert([{ nombre, email, password }]);
 
             if (error) {
                 alert("Error al registrar: " + error.message);
             } else {
-                alert("¡Usuario creado con éxito en Supabase!");
+                alert("¡Usuario creado con éxito!");
                 window.location.href = "index.html"; // Redirige al Login
             }
         });
     }
 
-    // === FUNCIONALIDAD: LOGIN DE USUARIO ===
-    const formLogin = document.getElementById('form-login');
-    if (formLogin) {
-        formLogin.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-pass').value;
-
-            // Consulta si existe el usuario con ese correo y contraseña
-            const { data, error } = await supabaseClient
-                .from('usuarios')
-                .select('*')
-                .eq('email', email)
-                .eq('password', password);
-
-            if (error || !data || data.length === 0) {
-                alert("Credenciales incorrectas o usuario inexistente.");
-            } else {
-                alert("¡Ingreso correcto! Bienvenido/a " + data[0].nombre);
-                window.location.href = "datos.html"; // Redirige al Panel de Datos
-            }
-        });
-    }
-
-    // === AUTOMATIZACIÓN: CARGAR DATOS SI ESTAMOS EN DATOS.HTML ===
-    // Esto hace que los datos carguen solos al entrar a la página sin obligar a presionar el botón
-    if (document.getElementById('cuerpo-tabla')) {
-        cargarClientes();
+    // --- LÓGICA: CARGA AUTOMÁTICA DEL PANEL (datos.html) ---
+    // Si detecta la tabla de clientes en la página actual, ejecuta la carga masiva
+    if (document.getElementById("cuerpo-tabla")) {
+        cargarTodo();
     }
 });
 
-// === FUNCIONALIDAD: OBTENER Y MOSTRAR LOS CLIENTES ===
-async function cargarClientes() {
-    const tabla = document.getElementById('cuerpo-tabla');
-    if (!tabla) return;
+// ==========================================
+// FUNCIONES GLOBALES PARA EL PANEL DE DATOS
+// ==========================================
 
-    tabla.innerHTML = `<tr><td colspan="5" style="text-align:center;">Cargando datos desde Supabase...</td></tr>`;
+// Función maestra invocada por el botón de actualización y al cargar la página
+function cargarTodo() {
+    cargarClientes();
+    cargarProductos();
+}
+
+// Cargar registros de la tabla 'clientes'
+async function cargarClientes() {
+    const tablaClientes = document.getElementById("cuerpo-tabla");
+    if (!tablaClientes) return;
+
+    tablaClientes.innerHTML = `<tr><td colspan="5" style="text-align:center;">Cargando clientes...</td></tr>`;
 
     const { data: clientes, error } = await supabaseClient
-        .from('clientes')
-        .select('*')
-        .order('id', { ascending: true }); // Ordenados por ID
+        .from("clientes")
+        .select("*")
+        .order("id", { ascending: true });
 
     if (error) {
-        alert("Error al cargar los datos: " + error.message);
+        alert("Error al cargar clientes: " + error.message);
         return;
     }
 
-    tabla.innerHTML = ""; // Vaciar mensaje de carga
+    tablaClientes.innerHTML = "";
 
     if (clientes.length === 0) {
-        tabla.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay clientes registrados.</td></tr>`;
+        tablaClientes.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay clientes registrados.</td></tr>`;
         return;
     }
 
-    // Recorrer los 15 registros y agregarlos a la tabla
-    clientes.forEach(cliente => {
-        tabla.innerHTML += `
+    clientes.forEach(cli => {
+        tablaClientes.innerHTML += `
             <tr>
-                <td>${cliente.id}</td>
-                <td>${cliente.nombre}</td>
-                <td>${cliente.empresa || 'N/A'}</td>
-                <td>${cliente.telefono || 'N/A'}</td>
-                <td>${cliente.ciudad || 'N/A'}</td>
+                <td>${cli.id}</td>
+                <td>${cli.nombre}</td>
+                <td>${cli.empresa}</td>
+                <td>${cli.telefono || 'N/A'}</td>
+                <td>${cli.ciudad}</td>
+            </tr>
+        `;
+    });
+}
+
+// Cargar registros de la tabla 'productos'
+async function cargarProductos() {
+    const tablaProductos = document.getElementById("cuerpo-productos");
+    if (!tablaProductos) return;
+
+    tablaProductos.innerHTML = `<tr><td colspan="5" style="text-align:center;">Cargando productos...</td></tr>`;
+
+    const { data: productos, error } = await supabaseClient
+        .from("productos")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if (error) {
+        alert("Error al cargar productos: " + error.message);
+        return;
+    }
+
+    tablaProductos.innerHTML = "";
+
+    if (productos.length === 0) {
+        tablaProductos.innerHTML = `<tr><td colspan="5" style="text-align:center;">No hay productos en el inventario.</td></tr>`;
+        return;
+    }
+
+    productos.forEach(prod => {
+        tablaProductos.innerHTML += `
+            <tr>
+                <td>${prod.id}</td>
+                <td>**${prod.nombre}**</td>
+                <td>${prod.categoria || 'N/A'}</td>
+                <td>$${prod.precio}</td>
+                <td>${prod.stock} u.</td>
             </tr>
         `;
     });
