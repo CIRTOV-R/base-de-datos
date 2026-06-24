@@ -17,8 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formLogin) {
         formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value;
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-pass").value;
 
             // Consultar en la tabla usuarios
             const { data: usuarios, error } = await supabaseClient
