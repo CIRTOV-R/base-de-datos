@@ -14,13 +14,23 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // --- LÓGICA: FORMULARIO DE LOGIN (index.html) ---
     const formLogin = document.getElementById("form-login");
+    
     if (formLogin) {
         formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const email = document.getElementById("login-email").value.trim();
-            const password = document.getElementById("login-pass").value;
+            
+            // Intenta buscar con prefijos o directos según tu HTML actual
+            const emailInput = document.getElementById("login-email") || document.getElementById("email");
+            const passInput = document.getElementById("login-pass") || document.getElementById("password");
+            
+            if (!emailInput || !passInput) {
+                alert("Error: No se encontraron los campos de texto en el HTML.");
+                return;
+            }
 
-            // Consultar en la tabla usuarios
+            const email = emailInput.value.trim();
+            const password = passInput.value;
+
             const { data: usuarios, error } = await supabaseClient
                 .from("usuarios")
                 .select("*")
@@ -33,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (usuarios && usuarios.length > 0) {
-                // Credenciales correctas -> Redirecciona al panel
                 window.location.href = "datos.html";
             } else {
                 alert("Credenciales incorrectas o usuario inexistente.");
@@ -43,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- LÓGICA: FORMULARIO DE REGISTRO (registro.html) ---
     const formRegistro = document.getElementById("form-registro");
+    
     if (formRegistro) {
         formRegistro.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -50,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
 
-            // Insertar nuevo usuario en la tabla usuarios
             const { error } = await supabaseClient
                 .from("usuarios")
                 .insert([{ nombre, email, password }]);
@@ -59,13 +68,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Error al registrar: " + error.message);
             } else {
                 alert("¡Usuario creado con éxito!");
-                window.location.href = "index.html"; // Redirige al Login
+                window.location.href = "index.html";
             }
         });
     }
 
     // --- LÓGICA: CARGA AUTOMÁTICA DEL PANEL (datos.html) ---
-    // Si detecta la tabla de clientes en la página actual, ejecuta la carga masiva
     if (document.getElementById("cuerpo-tabla")) {
         cargarTodo();
     }
@@ -146,7 +154,7 @@ async function cargarProductos() {
         tablaProductos.innerHTML += `
             <tr>
                 <td>${prod.id}</td>
-                <td>**${prod.nombre}**</td>
+                <td>${prod.nombre}</td>
                 <td>${prod.categoria || 'N/A'}</td>
                 <td>$${prod.precio}</td>
                 <td>${prod.stock} u.</td>
