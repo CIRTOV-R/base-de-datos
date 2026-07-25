@@ -148,7 +148,6 @@ async function inicializarFormularioPedido() {
 
             if (!prodId || !cantidad || cantidad <= 0) continue;
 
-            // Validar stock local corregido
             const prod = productosDisponibles.find(p => p.id === prodId);
             if (prod && cantidad > prod.stock) {
                 alert(`Stock insuficiente para ${prod.nombre}. Stock disponible: ${prod.stock}`);
@@ -163,7 +162,6 @@ async function inicializarFormularioPedido() {
             return;
         }
 
-        // 1. Crear el Pedido Principal
         const { data: nuevoPedido, error: errPed } = await supabaseClient
             .from("pedidos")
             .insert([{ cliente_nombre: nombre, cliente_identificacion: identificacion }])
@@ -172,7 +170,6 @@ async function inicializarFormularioPedido() {
 
         if (errPed) { alert("Error al crear pedido: " + errPed.message); return; }
 
-        // 2. Insertar Detalles y Actualizar Stock
         for (let item of itemsPedido) {
             await supabaseClient.from("detalle_pedidos").insert([{
                 pedido_id: nuevoPedido.id,
@@ -181,7 +178,6 @@ async function inicializarFormularioPedido() {
                 precio_unitario: item.precio_unitario
             }]);
 
-            // Descontar stock en tabla productos
             const prodActual = productosDisponibles.find(p => p.id === item.producto_id);
             await supabaseClient
                 .from("productos")
@@ -220,6 +216,50 @@ function agregarFilaProducto() {
     });
 
     contenedor.appendChild(div);
+}
+
+// ==========================================
+// CONTROL DE NUEVOS PRODUCTOS
+// ==========================================
+function abrirModalNuevoProducto() {
+    const panel = document.getElementById("panel-nuevo-producto");
+    if (panel) panel.style.display = "block";
+}
+
+function cerrarModalNuevoProducto() {
+    const panel = document.getElementById("panel-nuevo-producto");
+    if (panel) panel.style.display = "none";
+}
+
+async function guardarNuevoProducto() {
+    const nombre = document.getElementById("nuevo-prod-nombre").value.trim();
+    const categoria = document.getElementById("nuevo-prod-categoria").value.trim();
+    const precio = parseFloat(document.getElementById("nuevo-prod-precio").value);
+    const stock = parseInt(document.getElementById("nuevo-prod-stock").value);
+
+    if (!nombre || isNaN(precio) || isNaN(stock)) {
+        alert("Por favor completa el nombre, precio y stock de forma correcta.");
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("productos")
+        .insert([{ nombre, categoria, precio, stock }]);
+
+    if (error) {
+        alert("Error al registrar el producto: " + error.message);
+        return;
+    }
+
+    alert("¡Producto agregado con éxito!");
+    
+    document.getElementById("nuevo-prod-nombre").value = "";
+    document.getElementById("nuevo-prod-categoria").value = "";
+    document.getElementById("nuevo-prod-precio").value = "0.00";
+    document.getElementById("nuevo-prod-stock").value = "10";
+    cerrarModalNuevoProducto();
+
+    cargarProductos();
 }
 
 // ==========================================
@@ -279,10 +319,5 @@ async function guardarCompraStock() {
 
     alert("¡Inventario actualizado con éxito! Se sumaron " + cantidadAgregada + " unidades.");
     cerrarModalCompra();
-    
-    if (typeof cargarProductos === "function") {
-        cargarProductos();
-    } else if (typeof cargarTodo === "function") {
-        cargarTodo();
-    }
+    cargarProductos();
 }

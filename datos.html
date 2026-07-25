@@ -52,13 +52,41 @@
 
         <br><hr><br>
 
-        <!-- SECCIÓN DE INVENTARIO CON CONTROL DE COMPRAS Y STOCK -->
         <section class="seccion-tabla">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0;">Inventario de Productos (Control de Stock)</h3>
-                <div style="display: flex; gap: 10px;">
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="abrirModalNuevoProducto()" class="btn-primario" style="padding: 6px 12px; font-size: 13px; background: #10b981;">+ Nuevo Producto</button>
                     <button onclick="abrirModalCompra()" class="btn-primario" style="padding: 6px 12px; font-size: 13px;">+ Registrar Compra</button>
                     <button onclick="cargarProductos()" class="btn-accion" style="padding: 6px 12px; font-size: 13px;">Actualizar Inventario</button>
+                </div>
+            </div>
+
+            <!-- Panel Oculto para Crear Nuevo Producto -->
+            <div id="panel-nuevo-producto" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0;">
+                <h4 style="margin-top: 0; color: #1e293b;">Registrar Nuevo Producto en el Sistema</h4>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                    <div style="flex: 2; min-width: 180px;">
+                        <label style="font-size: 12px; font-weight: 600;">Nombre del Producto:</label>
+                        <input type="text" id="nuevo-prod-nombre" placeholder="Ej: Cámara Pro 4K" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div style="flex: 1; min-width: 130px;">
+                        <label style="font-size: 12px; font-weight: 600;">Categoría:</label>
+                        <input type="text" id="nuevo-prod-categoria" placeholder="Ej: Seguridad" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div style="width: 100px;">
+                        <label style="font-size: 12px; font-weight: 600;">Precio ($):</label>
+                        <input type="number" id="nuevo-prod-precio" step="0.01" min="0" value="0.00" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div style="width: 100px;">
+                        <label style="font-size: 12px; font-weight: 600;">Stock Inicial:</label>
+                        <input type="number" id="nuevo-prod-stock" min="0" value="10" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    </div>
+                    <div>
+                        <button onclick="guardarNuevoProducto()" class="btn-primario" style="padding: 8px 15px; background: #10b981;">Guardar</button>
+                        <button onclick="cerrarModalNuevoProducto()" style="padding: 8px 15px; background: #94a3b8; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
                 </div>
             </div>
 
