@@ -84,8 +84,17 @@ async function cargarClientes() {
 async function cargarProductos() {
     const tabla = document.getElementById("cuerpo-productos");
     if (!tabla) return;
-    const { data: productos } = await supabaseClient.from("productos").select("*").order("id");
-    tabla.innerHTML = productos.length ? productos.map(p => `<tr><td>#${p.id}</td><td>${p.nombre}</td><td>${p.categoria || 'N/A'}</td><td><span class="precio">$${p.precio}</span></td><td>${p.stock} u.</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;">Sin inventario.</td></tr>`;
+    
+    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
+    
+    if (error) {
+        alert("Error al cargar inventario: " + error.message);
+        return;
+    }
+
+    tabla.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `<tr><td>#${p.id}</td><td>${p.nombre}</td><td>${p.categoria || 'N/A'}</td><td><span class="precio">$${p.precio}</span></td><td>${p.stock} u.</td></tr>`).join('') 
+        : `<tr><td colspan="5" style="text-align:center;">Sin inventario.</td></tr>`;
 }
 
 async function cargarPedidos() {
@@ -139,8 +148,8 @@ async function inicializarFormularioPedido() {
 
             if (!prodId || !cantidad || cantidad <= 0) continue;
 
-            // Validar stock local
-            const prod = productosDisponibles.p(p => p.id === prodId);
+            // Validar stock local corregido
+            const prod = productosDisponibles.find(p => p.id === prodId);
             if (prod && cantidad > prod.stock) {
                 alert(`Stock insuficiente para ${prod.nombre}. Stock disponible: ${prod.stock}`);
                 return;
@@ -211,20 +220,69 @@ function agregarFilaProducto() {
     });
 
     contenedor.appendChild(div);
-
 }
-async function cargarProductos() {
-    const tabla = document.getElementById("cuerpo-productos");
-    if (!tabla) return;
+
+// ==========================================
+// CONTROL DE COMPRAS Y STOCK
+// ==========================================
+async function abrirModalCompra() {
+    const panel = document.getElementById("panel-compra");
+    const select = document.getElementById("select-producto-compra");
     
-    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
+    if (!panel || !select) return;
+    panel.style.display = "block";
+    
+    const { data: productos, error } = await supabaseClient.from("productos").select("id, nombre, stock").order("nombre");
     
     if (error) {
-        alert("Error al cargar inventario: " + error.message);
+        alert("Error al cargar productos: " + error.message);
         return;
     }
 
-    tabla.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `<tr><td>#${p.id}</td><td>${p.nombre}</td><td>${p.categoria || 'N/A'}</td><td><span class="precio">$${p.precio}</span></td><td>${p.stock} u.</td></tr>`).join('') 
-        : `<tr><td colspan="5" style="text-align:center;">Sin inventario.</td></tr>`;
+    select.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `<option value="${p.id}" data-stock="${p.stock}">${p.nombre} (Stock actual: ${p.stock})</option>`).join('')
+        : `<option value="">No hay productos disponibles</option>`;
+}
+
+function cerrarModalCompra() {
+    const panel = document.getElementById("panel-compra");
+    if (panel) panel.style.display = "none";
+}
+
+async function guardarCompraStock() {
+    const select = document.getElementById("select-producto-compra");
+    const inputCantidad = document.getElementById("cantidad-comprada");
+    
+    if (!select || !inputCantidad) return;
+
+    const productoId = parseInt(select.value);
+    const cantidadAgregada = parseInt(inputCantidad.value);
+
+    if (!productoId || !cantidadAgregada || cantidadAgregada <= 0) {
+        alert("Por favor selecciona un producto válido y una cantidad mayor a 0.");
+        return;
+    }
+
+    const optionSelected = select.options[select.selectedIndex];
+    const stockActual = parseInt(optionSelected.getAttribute("data-stock")) || 0;
+    const nuevoStock = stockActual + cantidadAgregada;
+
+    const { error } = await supabaseClient
+        .from("productos")
+        .update({ stock: nuevoStock })
+        .eq("id", productoId);
+
+    if (error) {
+        alert("Error al actualizar el stock: " + error.message);
+        return;
+    }
+
+    alert("¡Inventario actualizado con éxito! Se sumaron " + cantidadAgregada + " unidades.");
+    cerrarModalCompra();
+    
+    if (typeof cargarProductos === "function") {
+        cargarProductos();
+    } else if (typeof cargarTodo === "function") {
+        cargarTodo();
+    }
 }
