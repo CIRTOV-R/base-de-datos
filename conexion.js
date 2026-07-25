@@ -211,4 +211,20 @@ function agregarFilaProducto() {
     });
 
     contenedor.appendChild(div);
+
+}
+async function cargarProductos() {
+    const tabla = document.getElementById("cuerpo-productos");
+    if (!tabla) return;
+    
+    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
+    
+    if (error) {
+        alert("Error al cargar inventario: " + error.message);
+        return;
+    }
+
+    tabla.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `<tr><td>#${p.id}</td><td>${p.nombre}</td><td>${p.categoria || 'N/A'}</td><td><span class="precio">$${p.precio}</span></td><td>${p.stock} u.</td></tr>`).join('') 
+        : `<tr><td colspan="5" style="text-align:center;">Sin inventario.</td></tr>`;
 }

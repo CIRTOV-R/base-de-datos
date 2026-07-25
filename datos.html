@@ -38,7 +38,13 @@
             <h3>Lista de Clientes</h3><br>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Ciudad</th></tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Empresa</th>
+                        <th>Teléfono</th>
+                        <th>Ciudad</th>
+                    </tr>
                 </thead>
                 <tbody id="cuerpo-tabla"></tbody>
             </table>
@@ -47,26 +53,24 @@
         <br><hr><br>
 
         <section class="seccion-tabla">
-            <h3>Inventario de Productos (Control de Stock)</h3><br>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Nombre Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr>
-                </thead>
-                <tbody id="cuerpo-productos"></tbody>
-            </table>
-        </section>
-        <section class="seccion-tabla">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h3 style="margin: 0;">Inventario de Productos (Control de Stock)</h3>
                 <button onclick="cargarProductos()" class="btn-accion" style="padding: 6px 12px; font-size: 13px;">Actualizar Inventario</button>
             </div>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Nombre Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                    </tr>
                 </thead>
                 <tbody id="cuerpo-productos"></tbody>
             </table>
         </section>
+        
         <footer>
             <br>
             <a href="index.html" class="enlace-salir">Cerrar Sesión</a>
