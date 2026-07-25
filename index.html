@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innova - Panel de Datos</title>
+    <title>Innova - Panel de Control</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -11,42 +11,48 @@
     <main class="contenedor-ancho">
         <header class="encabezado-panel">
             <h2>Panel de Control - Empresa Innova</h2>
-            <button onclick="cargarTodo()" class="btn-accion">Actualizar Tablas</button>
+            <div style="display: flex; gap: 10px;">
+                <a href="pedido.html" class="btn-primario" style="text-decoration: none; padding: 10px 15px; display:inline-block;">+ Nuevo Pedido</a>
+                <button onclick="cargarTodo()" class="btn-accion">Actualizar Tablas</button>
+            </div>
         </header>
         
         <section class="seccion-tabla">
-            <h3>Lista de Clientes</h3><br>
+            <h3>Gestión de Pedidos Recientes</h3><br>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Empresa</th>
-                        <th>Teléfono</th>
-                        <th>Ciudad</th>
+                        <th>ID Pedido</th>
+                        <th>Cliente (Cédula/RIF)</th>
+                        <th>Productos Solicitados</th>
+                        <th>Fecha</th>
                     </tr>
                 </thead>
-                <tbody id="cuerpo-tabla">
-                    </tbody>
+                <tbody id="cuerpo-pedidos"></tbody>
             </table>
         </section>
 
         <br><hr><br>
 
         <section class="seccion-tabla">
-            <h3>Inventario de Productos</h3><br>
+            <h3>Lista de Clientes</h3><br>
             <table>
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre Producto</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                    </tr>
+                    <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Ciudad</th></tr>
                 </thead>
-                <tbody id="cuerpo-productos">
-                    </tbody>
+                <tbody id="cuerpo-tabla"></tbody>
+            </table>
+        </section>
+
+        <br><hr><br>
+
+        <section class="seccion-tabla">
+            <h3>Inventario de Productos (Control de Stock)</h3><br>
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Nombre Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr>
+                </thead>
+                <tbody id="cuerpo-productos"></tbody>
             </table>
         </section>
         
