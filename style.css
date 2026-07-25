@@ -1,4 +1,6 @@
-/* Estilos Globales */
+/* ==========================================
+   ESTILOS GLOBALES Y DE CONTENEDORES
+   ========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -9,22 +11,27 @@
 body {
     background-color: #f4f6f9;
     color: #333;
+    min-height: 100vh;
+    padding: 30px 20px;
+}
+
+/* Estado específico para páginas de autenticación (Login/Registro) */
+body.auth-page {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    padding: 20px;
 }
 
-/* Contenedor de Formularios (Login y Registro) */
+/* Contenedor de Formularios */
 .contenedor {
     background: #ffffff;
     padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 400px;
     text-align: center;
+    margin: auto;
 }
 
 .contenedor h2 {
@@ -39,7 +46,6 @@ body {
     margin-bottom: 24px;
 }
 
-/* Campos de Formulario */
 .campo {
     margin-bottom: 16px;
     text-align: left;
@@ -49,24 +55,25 @@ input {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 input:focus {
     outline: none;
     border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Botones */
+/* Botones con estilo moderno */
 .btn-primario {
     width: 100%;
     background-color: #3b82f6;
     color: white;
     padding: 12px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -83,18 +90,18 @@ input:focus {
     color: white;
     padding: 10px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
     font-weight: 600;
     transition: background-color 0.2s;
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.2);
 }
 
 .btn-accion:hover {
     background-color: #059669;
 }
 
-/* Enlaces del pie */
 .enlaces-pie {
     margin-top: 20px;
     font-size: 14px;
@@ -103,20 +110,24 @@ input:focus {
 .enlaces-pie a {
     color: #3b82f6;
     text-decoration: none;
+    font-weight: 500;
 }
 
 .enlaces-pie a:hover {
     text-decoration: underline;
 }
 
-/* Contenedor del Panel de Datos (Tabla Ancha) */
+/* ==========================================
+   PANEL DE DATOS (Dashboard)
+   ========================================== */
 .contenedor-ancho {
     background: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .encabezado-panel {
@@ -125,7 +136,7 @@ input:focus {
     align-items: center;
     margin-bottom: 24px;
     border-bottom: 2px solid #f3f4f6;
-    padding-bottom: 15px;
+    padding-bottom: 20px;
 }
 
 .encabezado-panel h2 {
@@ -133,7 +144,6 @@ input:focus {
     font-size: 22px;
 }
 
-/* Estilos de la Tabla */
 .seccion-tabla {
     overflow-x: auto;
 }
@@ -141,13 +151,14 @@ input:focus {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
+    margin-top: 10px;
     text-align: left;
 }
 
 th, td {
     padding: 14px 16px;
     border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
 }
 
 th {
@@ -159,8 +170,27 @@ th {
     letter-spacing: 0.5px;
 }
 
+tr {
+    transition: background-color 0.15s ease;
+}
+
 tr:hover {
     background-color: #f8fafc;
+}
+
+/* Detalles visuales UX/UI Pro */
+.badge {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.precio {
+    color: #059669;
+    font-weight: 600;
 }
 
 .enlace-salir {
@@ -168,8 +198,11 @@ tr:hover {
     text-decoration: none;
     font-weight: 600;
     font-size: 14px;
+    display: inline-block;
+    transition: color 0.2s;
 }
 
 .enlace-salir:hover {
+    color: #dc2626;
     text-decoration: underline;
 }

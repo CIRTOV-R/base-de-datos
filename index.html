@@ -3,32 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innova - Login</title>
+    <title>Innova - Panel de Datos</title>
     <link rel="stylesheet" href="style.css">
-    <!-- CDN Obligatorio de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <main class="contenedor">
-        <h2>Iniciar Sesión</h2>
-        <p class="subtitulo">Empresa Innova</p>
+    <main class="contenedor-ancho">
+        <header class="encabezado-panel">
+            <h2>Panel de Control - Empresa Innova</h2>
+            <button onclick="cargarTodo()" class="btn-accion">Actualizar Tablas</button>
+        </header>
         
-        <form id="form-login">
-            <div class="campo">
-                <input type="email" id="email" placeholder="Correo Electrónico" required>
-            </div>
-            <div class="campo">
-                <input type="password" id="password" placeholder="Contraseña" required>
-            </div>
-            <button type="submit" class="btn-primario">Ingresar</button>
-        </form>
+        <section class="seccion-tabla">
+            <h3>Lista de Clientes</h3><br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Empresa</th>
+                        <th>Teléfono</th>
+                        <th>Ciudad</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla">
+                    </tbody>
+            </table>
+        </section>
+
+        <br><hr><br>
+
+        <section class="seccion-tabla">
+            <h3>Inventario de Productos</h3><br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-productos">
+                    </tbody>
+            </table>
+        </section>
         
-        <div class="enlaces-pie">
-            <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
-        </div>
+        <footer>
+            <br>
+            <a href="index.html" class="enlace-salir">Cerrar Sesión</a>
+        </footer>
     </main>
 
-    <!-- Tu lógica de JavaScript al final -->
     <script src="conexion.js"></script>
 </body>
 </html>

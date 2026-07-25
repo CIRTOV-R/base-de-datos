@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innova - Registrar Pedido</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+    <main class="contenedor" style="max-width: 600px;">
+        <h2>Registrar Nuevo Pedido</h2>
+        <p class="subtitulo">Selecciona los productos y controla el stock</p>
+        
+        <form id="form-pedido" style="text-align: left;">
+            <div class="campo">
+                <label style="font-size: 13px; font-weight: 600; color: #475569;">Nombre del Cliente:</label>
+                <input type="text" id="ped-nombre" placeholder="Ej. Carlos Pérez" required>
+            </div>
+            
+            <div class="campo">
+                <label style="font-size: 13px; font-weight: 600; color: #475569;">Identificación (Cédula o RIF):</label>
+                <input type="text" id="ped-identificacion" placeholder="Ej. V-12345678 o J-00000000-0" required>
+            </div>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e5e7eb;">
+
+            <label style="font-size: 14px; font-weight: 700; color: #1e3a8a; display: block; margin-bottom: 10px;">Productos Requeridos:</label>
+            
+            <div id="contenedor-productos-pedido">
+                <!-- Las líneas de productos se inyectan dinámicamente aquí -->
+            </div>
+
+            <button type="button" id="btn-agregar-linea" style="background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 20px; font-size: 13px;">+ Agregar otro producto</button>
+
+            <button type="submit" class="btn-primario">Guardar y Procesar Pedido</button>
+        </form>
+        
+        <div class="enlaces-pie">
+            <p><a href="datos.html">Cancelar y Volver al Panel</a></p>
+        </div>
+    </main>
+
+    <script src="conexion.js"></script>
+</body>
+</html>
