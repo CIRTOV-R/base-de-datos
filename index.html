@@ -3,63 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innova - Panel de Control</title>
+    <title>Innova - Iniciar Sesión</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-    <main class="contenedor-ancho">
-        <header class="encabezado-panel">
-            <h2>Panel de Control - Empresa Innova</h2>
-            <div style="display: flex; gap: 10px;">
-                <a href="pedido.html" class="btn-primario" style="text-decoration: none; padding: 10px 15px; display:inline-block;">+ Nuevo Pedido</a>
-                <button onclick="cargarTodo()" class="btn-accion">Actualizar Tablas</button>
+<body class="auth-page">
+    <main class="contenedor" style="max-width: 400px; margin-top: 10vh;">
+        <h2>Empresa Innova</h2>
+        <p class="subtitulo">Ingresa a tu cuenta para gestionar el sistema</p>
+        
+        <form id="form-login" style="text-align: left;">
+            <div class="campo">
+                <label style="font-size: 13px; font-weight: 600; color: #475569;">Correo Electrónico:</label>
+                <input type="email" id="login-email" placeholder="correo@empresa.com" required>
             </div>
-        </header>
+            
+            <div class="campo" style="margin-top: 15px;">
+                <label style="font-size: 13px; font-weight: 600; color: #475569;">Contraseña:</label>
+                <input type="password" id="login-pass" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primario" style="margin-top: 20px; width: 100%;">Iniciar Sesión</button>
+        </form>
         
-        <section class="seccion-tabla">
-            <h3>Gestión de Pedidos Recientes</h3><br>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Pedido</th>
-                        <th>Cliente (Cédula/RIF)</th>
-                        <th>Productos Solicitados</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-pedidos"></tbody>
-            </table>
-        </section>
-
-        <br><hr><br>
-
-        <section class="seccion-tabla">
-            <h3>Lista de Clientes</h3><br>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Ciudad</th></tr>
-                </thead>
-                <tbody id="cuerpo-tabla"></tbody>
-            </table>
-        </section>
-
-        <br><hr><br>
-
-        <section class="seccion-tabla">
-            <h3>Inventario de Productos (Control de Stock)</h3><br>
-            <table>
-                <thead>
-                    <tr><th>ID</th><th>Nombre Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr>
-                </thead>
-                <tbody id="cuerpo-productos"></tbody>
-            </table>
-        </section>
-        
-        <footer>
-            <br>
-            <a href="index.html" class="enlace-salir">Cerrar Sesión</a>
-        </footer>
+        <div class="enlaces-pie" style="margin-top: 20px; text-align: center;">
+            <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+        </div>
     </main>
 
     <script src="conexion.js"></script>
