@@ -1,6 +1,6 @@
 // ==========================================
 // CONFIGURACIÓN DE SUPABASE
-// Proyecto creado por Victor Rodrigues UTS Guayana 
+// Proyecto: Innova - UTS Guayana
 // ==========================================
 const SUPABASE_URL = "https://heshjmfxuxiczjllnmnp.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
@@ -9,7 +9,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- 1. LOGIN ---
+    // --- 1. MÓDULO DE LOGIN ---
     const formLogin = document.getElementById("form-login");
     if (formLogin) {
         formLogin.addEventListener("submit", async (e) => {
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const passInput = document.getElementById("login-pass") || document.getElementById("password");
             
             if (!emailInput || !passInput) {
-                showToast("Error: No se encontraron los campos de texto.", "error");
+                showToast("Error: No se encontraron los campos del formulario.", "error");
                 return;
             }
 
@@ -34,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showLoader(true);
 
             try {
-                // Realizamos la consulta a la tabla 'usuarios' verificando credenciales
                 const { data: usuarios, error } = await supabaseClient
                     .from("usuarios")
                     .select("*")
@@ -43,11 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 showLoader(false);
 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
 
-                // Manejamos la respuesta y ejecutamos la redirección si el usuario existe
                 if (usuarios && usuarios.length > 0) {
                     showToast("¡Inicio de sesión exitoso! Redirigiendo...", "success");
                     localStorage.setItem("usuario_conectado", JSON.stringify(usuarios[0]));
@@ -57,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     showToast("Correo o contraseña incorrectos.", "error");
                 }
-
             } catch (err) {
                 showLoader(false);
                 console.error("Error en el login:", err);
@@ -66,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- 2. REGISTRO ---
+    // --- 2. MÓDULO DE REGISTRO ---
     const formRegistro = document.getElementById("form-registro");
     if (formRegistro) {
         formRegistro.addEventListener("submit", async (e) => {
@@ -74,6 +69,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const nombre = document.getElementById("reg-nombre").value.trim();
             const email = document.getElementById("reg-email").value.trim();
             const password = document.getElementById("reg-pass").value;
+
+            if (!nombre || !email || !password) {
+                showToast("Completa todos los campos de registro.", "error");
+                return;
+            }
 
             showLoader(true);
             const { error } = await supabaseClient.from("usuarios").insert([{ nombre, email, password }]);
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- 3. CARGA DE DATOS EN PANEL ---
+    // --- 3. CARGA AUTOMÁTICA DE DATOS EN EL PANEL ---
     if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos") || document.getElementById("cuerpo-instalaciones")) {
         cargarTodo();
     }
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inicializarFormularioPedido();
     }
 
-    // --- 5. ENVÍO DEL FORMULARIO CRUD DINÁMICO ---
+    // --- 5. ENVÍO DEL FORMULARIO CRUD DINÁMICO (MODAL) ---
     const crudForm = document.getElementById('crud-form');
     if (crudForm) {
         crudForm.addEventListener('submit', async (e) => {
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!supabaseClient) return;
 
             const isEditing = editingRecordId !== null;
-            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro en Supabase...', 'info');
+            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro...', 'info');
             let formData = {};
 
             try {
@@ -143,73 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (queryResponse.error) throw queryResponse.error;
 
-                showToast(isEditing ? '¡Registro actualizado correctamente!' : '¡Registro agregado correctamente!', 'success');
-                closeCrudFormModal();
-                cargarTodo();
-            } catch (err) {
-                console.error('Error al guardar/actualizar:', err);
-                showToast('Error en la operación: ' + err.message, 'error');
-            }
-        });
-    }
-
-    // --- CARGA DE DATOS EN PANEL ---
-    if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos")) {
-        cargarTodo();
-    }
-
-    // --- INICIALIZAR VISTA DE NUEVO PEDIDO ---
-    if (document.getElementById("form-pedido")) {
-        inicializarFormularioPedido();
-    }
-
-    // --- ENVÍO DEL FORMULARIO CRUD DINÁMICO (Crear o Actualizar) ---
-    const crudForm = document.getElementById('crud-form');
-    if (crudForm) {
-        crudForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!supabaseClient) return;
-
-            const isEditing = editingRecordId !== null;
-            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro en Supabase...', 'info');
-            let formData = {};
-
-            try {
-                // Recolección de datos según la pestaña activa o contexto
-                if (typeof currentTab !== 'undefined' && currentTab === 'clientes') {
-                    formData = {
-                        nombre: document.getElementById('c-nombre').value.trim(),
-                        telefono: document.getElementById('c-telefono').value.trim(),
-                        direccion: document.getElementById('c-direccion').value.trim(),
-                        historial_financiero: document.getElementById('c-historial').value
-                    };
-                } else if (typeof currentTab !== 'undefined' && currentTab === 'productos') {
-                    formData = {
-                        nombre: document.getElementById('pr-descripcion').value.trim(),
-                        stock: parseInt(document.getElementById('pr-stock').value),
-                        precio: parseFloat(document.getElementById('pr-precio').value)
-                    };
-                }
-
-                let queryResponse;
-                const pkField = getPrimaryKeyField(typeof currentTab !== 'undefined' ? currentTab : 'clientes');
-
-                if (isEditing) {
-                    queryResponse = await supabaseClient
-                        .from(currentTab)
-                        .update(formData)
-                        .eq(pkField, editingRecordId)
-                        .select();
-                } else {
-                    queryResponse = await supabaseClient
-                        .from(currentTab)
-                        .insert([formData])
-                        .select();
-                }
-
-                if (queryResponse.error) throw queryResponse.error;
-
-                showToast(isEditing ? '¡Registro actualizado correctamente!' : '¡Registro agregado correctamente!', 'success');
+                showToast(isEditing ? '¡Actualizado correctamente!' : '¡Agregado correctamente!', 'success');
                 closeCrudFormModal();
                 cargarTodo();
             } catch (err) {
@@ -221,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// FUNCIONES GLOBALES DEL PANEL
+// FUNCIONES GLOBALES DEL PANEL (CRUD & CARGAS)
 // ==========================================
 function cargarTodo() {
     cargarClientes();
@@ -229,15 +163,94 @@ function cargarTodo() {
     cargarPedidos();
     cargarInstalaciones();
 }
-// Actualiza la función cargarTodo para que incluya las instalaciones
-function cargarTodo() {
-    cargarClientes();
-    cargarProductos();
-    cargarPedidos();
-    cargarInstalaciones(); // <-- Sincroniza la nueva sección de técnicos e instalaciones
+
+async function cargarClientes() {
+    const tabla = document.getElementById("cuerpo-tabla");
+    if (!tabla) return;
+    
+    const { data: clientes, error } = await supabaseClient.from("clientes").select("*").order("id");
+    if (error) {
+        console.error("Error al cargar clientes:", error);
+        return;
+    }
+
+    tabla.innerHTML = clientes && clientes.length ? clientes.map(c => `
+        <tr>
+            <td>#${c.id}</td>
+            <td>${c.nombre || 'N/A'}</td>
+            <td>${c.empresa || 'N/A'}</td>
+            <td>${c.telefono || 'N/A'}</td>
+            <td><span class="badge">${c.ciudad || 'N/A'}</span></td>
+            <td>
+                <button onclick="openEditModal('clientes', ${c.id})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Editar</button>
+                <button onclick="deleteRecord('clientes', ${c.id})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Eliminar</button>
+            </td>
+        </tr>
+    `).join('') : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">📂 No hay clientes registrados.</td></tr>`;
 }
 
-// Función encargada de consultar la tabla de instalaciones y rellenar el HTML
+async function cargarProductos() {
+    const tabla = document.getElementById("cuerpo-productos");
+    if (!tabla) return;
+    
+    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
+    
+    if (error) {
+        showToast("Error al cargar inventario: " + error.message, "error");
+        return;
+    }
+
+    tabla.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `
+            <tr>
+                <td>#${p.id}</td>
+                <td><strong>${p.nombre}</strong></td>
+                <td>${p.categoria || 'N/A'}</td>
+                <td><span style="color: #10b981; font-weight: 600;">$${Number(p.precio).toFixed(2)}</span></td>
+                <td>${p.stock} u.</td>
+                <td>
+                    <button onclick="openEditModal('productos', ${p.id})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Editar</button>
+                    <button onclick="deleteRecord('productos', ${p.id})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Eliminar</button>
+                </td>
+            </tr>
+        `).join('') 
+        : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">📦 Sin inventario disponible.</td></tr>`;
+}
+
+async function cargarPedidos() {
+    const tabla = document.getElementById("cuerpo-pedidos");
+    if (!tabla) return;
+    
+    const { data: pedidos, error } = await supabaseClient
+        .from("pedidos")
+        .select("*, detalle_pedidos(*, productos(nombre))")
+        .order("id", { ascending: false });
+    
+    if (error || !pedidos || pedidos.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📋 No hay pedidos registrados.</td></tr>`;
+        return;
+    }
+
+    tabla.innerHTML = pedidos.map(ped => {
+        const items = ped.detalle_pedidos && ped.detalle_pedidos.length > 0 
+            ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
+            : 'Sin detalles';
+            
+        return `
+            <tr>
+                <td>#${ped.id}</td>
+                <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
+                <td>${items}</td>
+                <td>${new Date(ped.created_at).toLocaleDateString()}</td>
+                <td>
+                    <button onclick="openEditModal('pedidos', ${ped.id})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Editar</button>
+                    <button onclick="deleteRecord('pedidos', ${ped.id})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Eliminar</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
 async function cargarInstalaciones() {
     const tabla = document.getElementById("cuerpo-instalaciones");
     if (!tabla) return;
@@ -248,6 +261,7 @@ async function cargarInstalaciones() {
             id,
             fecha_instalacion,
             cantidad_instalada,
+            observaciones,
             pedidos ( id, cliente_nombre ),
             tecnicos ( nombre ),
             productos ( nombre )
@@ -268,86 +282,18 @@ async function cargarInstalaciones() {
                 <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
                 <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
                 <td>${i.fecha_instalacion || 'N/A'}</td>
+                <td>
+                    <button onclick="openEditModal('instalaciones', ${i.id})" style="background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Editar</button>
+                    <button onclick="deleteRecord('instalaciones', ${i.id})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Eliminar</button>
+                </td>
             </tr>
         `).join('')
-        : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">🔧 No hay instalaciones registradas todavía.</td></tr>`;
-}
-async function cargarClientes() {
-    const tabla = document.getElementById("cuerpo-tabla");
-    if (!tabla) return;
-    
-    const { data: clientes, error } = await supabaseClient.from("clientes").select("*").order("id");
-    if (error) {
-        console.error("Error al cargar clientes:", error);
-        return;
-    }
-
-    tabla.innerHTML = clientes && clientes.length ? clientes.map(c => `
-        <tr>
-            <td>#${c.id}</td>
-            <td>${c.nombre || 'N/A'}</td>
-            <td>${c.empresa || 'N/A'}</td>
-            <td>${c.telefono || 'N/A'}</td>
-            <td><span class="badge">${c.ciudad || 'N/A'}</span></td>
-        </tr>
-    `).join('') : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📂 No hay clientes registrados.</td></tr>`;
+        : `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #64748b;">🔧 No hay instalaciones registradas todavía.</td></tr>`;
 }
 
-async function cargarProductos() {
-    const tabla = document.getElementById("cuerpo-productos");
-    if (!tabla) return;
-    
-    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
-    
-    if (error) {
-        showToast("Error al cargar inventario: " + error.message, "error");
-        return;
-    }
-
-    tabla.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `
-            <tr>
-                <td>#${p.id}</td>
-                <td><strong>${p.nombre}</strong></td>
-                <td>${p.categoria || 'N/A'}</td>
-                <td><span class="precio" style="color: #10b981; font-weight: 600;">$${Number(p.precio).toFixed(2)}</span></td>
-                <td>${p.stock} u.</td>
-            </tr>
-        `).join('') 
-        : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📦 Sin inventario disponible.</td></tr>`;
-}
-
-async function cargarPedidos() {
-    const tabla = document.getElementById("cuerpo-pedidos");
-    if (!tabla) return;
-    
-    const { data: pedidos, error } = await supabaseClient
-        .from("pedidos")
-        .select("*, detalle_pedidos(*, productos(nombre))")
-        .order("id", { ascending: false });
-    
-    if (error || !pedidos || pedidos.length === 0) {
-        tabla.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #64748b;">📋 No hay pedidos registrados.</td></tr>`;
-        return;
-    }
-
-    tabla.innerHTML = pedidos.map(ped => {
-        const items = ped.detalle_pedidos && ped.detalle_pedidos.length > 0 
-            ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
-            : 'Sin detalles';
-            
-        return `
-            <tr>
-                <td>#${ped.id}</td>
-                <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
-                <td>${items}</td>
-                <td>${new Date(ped.created_at).toLocaleDateString()}</td>
-            </tr>
-        `;
-    }).join('');
-}
-
-// Variable global para rastrear si estamos editando
+// ==========================================
+// GESTIÓN DE MODALES Y ELIMINACIÓN
+// ==========================================
 let editingRecordId = null;
 
 async function openEditModal(tableName, recordId) {
@@ -371,7 +317,7 @@ async function openEditModal(tableName, recordId) {
         const overlay = document.getElementById('form-overlay');
         if (overlay) overlay.classList.remove('hidden');
     } catch (err) {
-        console.error('Error al cargar registro para editar:', err);
+        console.error('Error al cargar registro:', err);
         showToast('No se pudo cargar el registro: ' + err.message, 'error');
     } finally {
         showLoader(false);
@@ -385,8 +331,8 @@ function closeCrudFormModal() {
 }
 
 async function deleteRecord(tableName, recordId) {
-    if (!confirm(`¿Estás seguro de que deseas eliminar este registro de ${tableName}?`)) return;
-    if (!supabaseClient) return showToast('Supabase no está configurado.', 'error');
+    if (!confirm(`¿Estás seguro de eliminar este registro de ${tableName}?`)) return;
+    if (!supabaseClient) return showToast('Supabase no configurado.', 'error');
 
     showLoader(true);
     try {
@@ -402,7 +348,7 @@ async function deleteRecord(tableName, recordId) {
         cargarTodo();
     } catch (err) {
         console.error('Error al eliminar:', err);
-        showToast('Error al eliminar el registro: ' + err.message, 'error');
+        showToast('Error al eliminar: ' + err.message, 'error');
     } finally {
         showLoader(false);
     }
@@ -413,12 +359,15 @@ function getPrimaryKeyField(tableName) {
         'clientes': 'id_cliente',
         'pedidos': 'id',
         'productos': 'id',
-        'detalle_pedidos': 'id'
+        'detalle_pedidos': 'id',
+        'instalaciones': 'id'
     };
     return keys[tableName] || 'id';
 }
 
-
+// ==========================================
+// MÓDULO DE INSTALACIONES (MODALES)
+// ==========================================
 async function abrirModalInstalacion() {
     const panel = document.getElementById("panel-instalacion");
     const selectTecnico = document.getElementById("inst-select-tecnico");
@@ -427,17 +376,19 @@ async function abrirModalInstalacion() {
     if (!panel) return;
     panel.style.display = "block";
 
-    // Cargar técnicos desde la base de datos
     const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
-    selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
-        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
-        : `<option value="">No hay técnicos registrados</option>`;
+    if (selectTecnico) {
+        selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
+            ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
+            : `<option value="">No hay técnicos registrados</option>`;
+    }
 
-    // Cargar productos desde la base de datos
     const { data: productos } = await supabaseClient.from("productos").select("id, nombre").order("nombre");
-    selectProducto.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
-        : `<option value="">No hay productos disponibles</option>`;
+    if (selectProducto) {
+        selectProducto.innerHTML = productos && productos.length > 0 
+            ? productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+            : `<option value="">No hay productos disponibles</option>`;
+    }
 }
 
 function cerrarModalInstalacion() {
@@ -446,414 +397,20 @@ function cerrarModalInstalacion() {
 }
 
 async function guardarInstalacion() {
-    const pedidoId = parseInt(document.getElementById("inst-pedido-id").value);
-    const tecnicoId = parseInt(document.getElementById("inst-select-tecnico").value);
-    const productoId = parseInt(document.getElementById("inst-select-producto").value);
-    const cantidad = parseInt(document.getElementById("inst-cantidad").value);
-    const observaciones = document.getElementById("inst-observaciones").value.trim();
+    const pedidoId = parseInt(document.getElementById("inst-pedido-id")?.value);
+    const tecnicoId = parseInt(document.getElementById("inst-select-tecnico")?.value);
+    const productoId = parseInt(document.getElementById("inst-select-producto")?.value);
+    const cantidad = parseInt(document.getElementById("inst-cantidad")?.value);
+    const fechaInstalacion = document.getElementById("inst-fecha")?.value;
+    const observaciones = document.getElementById("inst-observaciones")?.value.trim() || "";
 
     if (!pedidoId || !tecnicoId || !productoId || !cantidad) {
-        showToast("Por favor completa los campos obligatorios de la instalación.", "error");
-        return;
-    }
-
-    showLoader(true);
-    // Inserción mapeada directamente a los nombres exactos de tus columnas
-    const { error } = await supabaseClient.from("instalaciones").insert([{
-        pedido_id: pedidoId,
-        tecnico_id: tecnicoId,
-        producto_id: productoId,
-        cantidad_instalada: cantidad,
-        observaciones: observaciones
-    }]);
-
-    // Si el usuario seleccionó una fecha específica, la agregamos; si no, Supabase usará el valor por defecto (CURRENT_DATE)
-    if (fechaInstalacion) {
-        datosInsertar.fecha_instalacion = fechaInstalacion;
-    }
-
-    showLoader(false);
-
-    if (error) {
-        showToast("Error al registrar instalación: " + error.message, "error");
-        return;
-    }
-
-    showToast("¡Instalación registrada con éxito!", "success");
-    cerrarModalInstalacion();
-    cargarInstalaciones(); // Recarga la tabla automáticamente para ver el cambio
-}
-
-
-
-// ==========================================
-// CONFIGURACIÓN DE SUPABASE
-// Proyecto creado por Victor Rodrigues UTS Guayana 
-// ==========================================
-const SUPABASE_URL = "https://heshjmfxuxiczjllnmnp.supabase.co"; 
-const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-document.addEventListener("DOMContentLoaded", () => {
-    
-    // --- LOGIN ---
-    const formLogin = document.getElementById("form-login");
-    if (formLogin) {
-        formLogin.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const emailInput = document.getElementById("login-email") || document.getElementById("email");
-            const passInput = document.getElementById("login-pass") || document.getElementById("password");
-            
-            if (!emailInput || !passInput) {
-                showToast("Error: No se encontraron los campos de texto.", "error");
-                return;
-            }
-
-            showLoader(true);
-            const { data: usuarios, error } = await supabaseClient
-                .from("usuarios")
-                .select("*")
-                .eq("email", emailInput.value.trim())
-                .eq("password", passInput.value);
-
-            showLoader(false);
-
-            if (error) { 
-                showToast("Error: " + error.message, "error"); 
-                return; 
-            }
-
-            if (usuarios && usuarios.length > 0) {
-                window.location.href = "datos.html";
-            } else {
-                showToast("Credenciales incorrectas.", "error");
-            }
-        });
-    }
-
-    // --- REGISTRO ---
-    const formRegistro = document.getElementById("form-registro");
-    if (formRegistro) {
-        formRegistro.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const nombre = document.getElementById("reg-nombre").value.trim();
-            const email = document.getElementById("reg-email").value.trim();
-            const password = document.getElementById("reg-pass").value;
-
-            showLoader(true);
-            const { error } = await supabaseClient.from("usuarios").insert([{ nombre, email, password }]);
-            showLoader(false);
-
-            if (error) {
-                showToast("Error al registrar: " + error.message, "error");
-            } else {
-                showToast("¡Usuario creado con éxito!", "success");
-                setTimeout(() => { window.location.href = "index.html"; }, 1500);
-            }
-        });
-    }
-
-    // --- CARGA DE DATOS EN PANEL ---
-    if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos")) {
-        cargarTodo();
-    }
-
-    // --- INICIALIZAR VISTA DE NUEVO PEDIDO ---
-    if (document.getElementById("form-pedido")) {
-        inicializarFormularioPedido();
-    }
-
-    // --- ENVÍO DEL FORMULARIO CRUD DINÁMICO (Crear o Actualizar) ---
-    const crudForm = document.getElementById('crud-form');
-    if (crudForm) {
-        crudForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!supabaseClient) return;
-
-            const isEditing = editingRecordId !== null;
-            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro en Supabase...', 'info');
-            let formData = {};
-
-            try {
-                if (typeof currentTab !== 'undefined' && currentTab === 'clientes') {
-                    formData = {
-                        nombre: document.getElementById('c-nombre').value.trim(),
-                        telefono: document.getElementById('c-telefono').value.trim(),
-                        direccion: document.getElementById('c-direccion').value.trim(),
-                        historial_financiero: document.getElementById('c-historial').value
-                    };
-                } else if (typeof currentTab !== 'undefined' && currentTab === 'productos') {
-                    formData = {
-                        nombre: document.getElementById('pr-descripcion').value.trim(),
-                        stock: parseInt(document.getElementById('pr-stock').value),
-                        precio: parseFloat(document.getElementById('pr-precio').value)
-                    };
-                }
-
-                let queryResponse;
-                const pkField = getPrimaryKeyField(typeof currentTab !== 'undefined' ? currentTab : 'clientes');
-
-                if (isEditing) {
-                    queryResponse = await supabaseClient
-                        .from(currentTab)
-                        .update(formData)
-                        .eq(pkField, editingRecordId)
-                        .select();
-                } else {
-                    queryResponse = await supabaseClient
-                        .from(currentTab)
-                        .insert([formData])
-                        .select();
-                }
-
-                if (queryResponse.error) throw queryResponse.error;
-
-                showToast(isEditing ? '¡Registro actualizado correctamente!' : '¡Registro agregado correctamente!', 'success');
-                closeCrudFormModal();
-                cargarTodo();
-            } catch (err) {
-                console.error('Error al guardar/actualizar:', err);
-                showToast('Error en la operación: ' + err.message, 'error');
-            }
-        });
-    }
-});
-
-// ==========================================
-// FUNCIONES GLOBALES DEL PANEL
-// ==========================================
-function cargarTodo() {
-    cargarClientes();
-    cargarProductos();
-    cargarPedidos();
-    cargarInstalaciones(); // Sincroniza la sección de técnicos e instalaciones
-}
-
-// Función encargada de consultar la tabla de instalaciones y rellenar el HTML
-async function cargarInstalaciones() {
-    const tabla = document.getElementById("cuerpo-instalaciones");
-    if (!tabla) return;
-
-    const { data: instalaciones, error } = await supabaseClient
-        .from("instalaciones")
-        .select(`
-            id,
-            fecha_instalacion,
-            cantidad_instalada,
-            pedidos ( id, cliente_nombre ),
-            tecnicos ( nombre ),
-            productos ( nombre )
-        `)
-        .order("id", { ascending: false });
-
-    if (error) {
-        console.error("Error al cargar instalaciones:", error);
-        return;
-    }
-
-    tabla.innerHTML = instalaciones && instalaciones.length > 0
-        ? instalaciones.map(i => `
-            <tr>
-                <td>#${i.id}</td>
-                <td>Pedido #${i.pedidos?.id || 'N/A'} <br><small style="color: #64748b;">${i.pedidos?.cliente_nombre || ''}</small></td>
-                <td><strong>${i.tecnicos?.nombre || 'Sin asignar'}</strong></td>
-                <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
-                <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
-                <td>${i.fecha_instalacion || 'N/A'}</td>
-            </tr>
-        `).join('')
-        : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">🔧 No hay instalaciones registradas todavía.</td></tr>`;
-}
-
-async function cargarClientes() {
-    const tabla = document.getElementById("cuerpo-tabla");
-    if (!tabla) return;
-    
-    const { data: clientes, error } = await supabaseClient.from("clientes").select("*").order("id");
-    if (error) {
-        console.error("Error al cargar clientes:", error);
-        return;
-    }
-
-    tabla.innerHTML = clientes && clientes.length ? clientes.map(c => `
-        <tr>
-            <td>#${c.id}</td>
-            <td>${c.nombre || 'N/A'}</td>
-            <td>${c.empresa || 'N/A'}</td>
-            <td>${c.telefono || 'N/A'}</td>
-            <td><span class="badge">${c.ciudad || 'N/A'}</span></td>
-        </tr>
-    `).join('') : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📂 No hay clientes registrados.</td></tr>`;
-}
-
-async function cargarProductos() {
-    const tabla = document.getElementById("cuerpo-productos");
-    if (!tabla) return;
-    
-    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
-    
-    if (error) {
-        showToast("Error al cargar inventario: " + error.message, "error");
-        return;
-    }
-
-    tabla.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `
-            <tr>
-                <td>#${p.id}</td>
-                <td><strong>${p.nombre}</strong></td>
-                <td>${p.categoria || 'N/A'}</td>
-                <td><span class="precio" style="color: #10b981; font-weight: 600;">$${Number(p.precio).toFixed(2)}</span></td>
-                <td>${p.stock} u.</td>
-            </tr>
-        `).join('') 
-        : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📦 Sin inventario disponible.</td></tr>`;
-}
-
-async function cargarPedidos() {
-    const tabla = document.getElementById("cuerpo-pedidos");
-    if (!tabla) return;
-    
-    const { data: pedidos, error } = await supabaseClient
-        .from("pedidos")
-        .select("*, detalle_pedidos(*, productos(nombre))")
-        .order("id", { ascending: false });
-    
-    if (error || !pedidos || pedidos.length === 0) {
-        tabla.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #64748b;">📋 No hay pedidos registrados.</td></tr>`;
-        return;
-    }
-
-    tabla.innerHTML = pedidos.map(ped => {
-        const items = ped.detalle_pedidos && ped.detalle_pedidos.length > 0 
-            ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
-            : 'Sin detalles';
-            
-        return `
-            <tr>
-                <td>#${ped.id}</td>
-                <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
-                <td>${items}</td>
-                <td>${new Date(ped.created_at).toLocaleDateString()}</td>
-            </tr>
-        `;
-    }).join('');
-}
-
-// Variable global para rastrear si estamos editando
-let editingRecordId = null;
-
-async function openEditModal(tableName, recordId) {
-    editingRecordId = recordId;
-    const titleEl = document.getElementById('form-modal-title');
-    if (titleEl) titleEl.innerText = `Editar Registro (${tableName})`;
-    
-    showLoader(true);
-    try {
-        const { data, error } = await supabaseClient
-            .from(tableName)
-            .select('*')
-            .eq(getPrimaryKeyField(tableName), recordId)
-            .single();
-
-        if (error) throw error;
-
-        if (typeof renderFormFields === 'function') {
-            renderFormFields(tableName, data);
-        }
-        const overlay = document.getElementById('form-overlay');
-        if (overlay) overlay.classList.remove('hidden');
-    } catch (err) {
-        console.error('Error al cargar registro para editar:', err);
-        showToast('No se pudo cargar el registro: ' + err.message, 'error');
-    } finally {
-        showLoader(false);
-    }
-}
-
-function closeCrudFormModal() {
-    const overlay = document.getElementById('form-overlay');
-    if (overlay) overlay.classList.add('hidden');
-    editingRecordId = null;
-}
-
-async function deleteRecord(tableName, recordId) {
-    if (!confirm(`¿Estás seguro de que deseas eliminar este registro de ${tableName}?`)) return;
-    if (!supabaseClient) return showToast('Supabase no está configurado.', 'error');
-
-    showLoader(true);
-    try {
-        const pkField = getPrimaryKeyField(tableName);
-        const { error } = await supabaseClient
-            .from(tableName)
-            .delete()
-            .eq(pkField, recordId);
-
-        if (error) throw error;
-
-        showToast('Registro eliminado correctamente.', 'success');
-        cargarTodo();
-    } catch (err) {
-        console.error('Error al eliminar:', err);
-        showToast('Error al eliminar el registro: ' + err.message, 'error');
-    } finally {
-        showLoader(false);
-    }
-}
-
-function getPrimaryKeyField(tableName) {
-    const keys = {
-        'clientes': 'id_cliente',
-        'pedidos': 'id',
-        'productos': 'id',
-        'detalle_pedidos': 'id'
-    };
-    return keys[tableName] || 'id';
-}
-
-async function abrirModalInstalacion() {
-    const panel = document.getElementById("panel-instalacion");
-    const selectTecnico = document.getElementById("inst-select-tecnico");
-    const selectProducto = document.getElementById("inst-select-producto");
-    
-    if (!panel) return;
-    panel.style.display = "block";
-
-    // Cargar técnicos desde la base de datos
-    const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
-    selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
-        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
-        : `<option value="">No hay técnicos registrados</option>`;
-
-    // Cargar productos desde la base de datos
-    const { data: productos } = await supabaseClient.from("productos").select("id, nombre").order("nombre");
-    selectProducto.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
-        : `<option value="">No hay productos disponibles</option>`;
-}
-
-function cerrarModalInstalacion() {
-    const panel = document.getElementById("panel-instalacion");
-    if (panel) panel.style.display = "none";
-}
-
-async function guardarInstalacion() {
-    const pedidoId = parseInt(document.getElementById("inst-pedido-id").value);
-    const tecnicoId = parseInt(document.getElementById("inst-select-tecnico").value);
-    const productoId = parseInt(document.getElementById("inst-select-producto").value);
-    const cantidad = parseInt(document.getElementById("inst-cantidad").value);
-    const fechaInstalacion = document.getElementById("inst-fecha")?.value; // Captura correcta de la fecha
-    const observaciones = document.getElementById("inst-observaciones").value.trim();
-
-    if (!pedidoId || !tecnicoId || !productoId || !cantidad) {
-        showToast("Por favor completa los campos obligatorios de la instalación.", "error");
+        showToast("Completa los campos obligatorios de la instalación.", "error");
         return;
     }
 
     showLoader(true);
     
-    // Objeto base con los datos obligatorios mapeados
     const datosInsertar = {
         pedido_id: pedidoId,
         tecnico_id: tecnicoId,
@@ -862,13 +419,9 @@ async function guardarInstalacion() {
         observaciones: observaciones
     };
 
-    // Si el usuario seleccionó una fecha específica, la agregamos; si no, Supabase usará el valor por defecto
-    if (fechaInstalacion) {
-        datosInsertar.fecha_instalacion = fechaInstalacion;
-    }
+    if (fechaInstalacion) datosInsertar.fecha_instalacion = fechaInstalacion;
 
     const { error } = await supabaseClient.from("instalaciones").insert([datosInsertar]);
-
     showLoader(false);
 
     if (error) {
@@ -878,7 +431,7 @@ async function guardarInstalacion() {
 
     showToast("¡Instalación registrada con éxito!", "success");
     cerrarModalInstalacion();
-    cargarInstalaciones(); // Recarga la tabla automáticamente para ver el cambio
+    cargarInstalaciones();
 }
 
 // ==========================================
@@ -889,292 +442,155 @@ let productosDisponibles = [];
 async function inicializarFormularioPedido() {
     const { data } = await supabaseClient.from("productos").select("*").gt("stock", 0);
     productosDisponibles = data || [];
-    agregarFilaProducto();
+    
+    const contenedor = document.getElementById("contenedor-lineas-pedido");
+    if (contenedor && contenedor.children.length === 0) {
+        agregarFilaProducto();
+    }
 
     const btnAgregar = document.getElementById("btn-agregar-linea");
-    if (btnAgregar) {
+    if (btnAgregar && !btnAgregar.dataset.listenerAdded) {
+        btnAgregar.dataset.listenerAdded = "true";
         btnAgregar.addEventListener("click", agregarFilaProducto);
     }
     
     const formPedido = document.getElementById("form-pedido");
-    if (formPedido) {
+    if (formPedido && !formPedido.dataset.listenerAdded) {
+        formPedido.dataset.listenerAdded = "true";
         formPedido.addEventListener("submit", async (e) => {
             e.preventDefault();
-            const nombre = document.getElementById("ped-nombre").value.trim();
-            const identificacion = document.getElementById("ped-identificacion").value.trim();
+            const nombreInput = document.getElementById("ped-nombre");
+            const identInput = document.getElementById("ped-identificacion");
             
-            const filas = document.querySelectorAll(".fila-producto-item");
-            const itemsPedido = [];
+            if (!nombreInput || !identInput) return;
 
-            for (let fila of filas) {
-                const select = fila.querySelector(".select-producto");
-                const inputCant = fila.querySelector(".input-cantidad");
-                const prodId = parseInt(select.value);
-                const cantidad = parseInt(inputCant.value);
+            const nombre = nombreInput.value.trim();
+            const identificacion = identInput.value.trim();
 
-                if (!prodId || !cantidad || cantidad <= 0) continue;
-
-                const prod = productosDisponibles.find(p => p.id === prodId);
-                if (prod && cantidad > prod.stock) {
-                    showToast(`Stock insuficiente para ${prod.nombre}. Stock disponible: ${prod.stock}`, "error");
-                    return;
-                }
-
-                itemsPedido.push({ producto_id: prodId, cantidad, precio_unitario: prod.precio });
+            const filas = document.querySelectorAll(".fila-producto");
+            if (filas.length === 0) {
+                showToast("Agrega al menos un producto al pedido.", "error");
+                return;
             }
 
-            if (itemsPedido.length === 0) {
-                showToast("Agrega al menos un producto válido al pedido.", "error");
+            let detalles = [];
+            let valido = true;
+
+            filas.forEach(fila => {
+                const select = fila.querySelector(".select-producto");
+                const inputCant = fila.querySelector(".input-cantidad");
+                if (!select || !inputCant) return;
+
+                const productoId = parseInt(select.value);
+                const cantidad = parseInt(inputCant.value);
+
+                if (!productoId || !cantidad || cantidad <= 0) {
+                    valido = false;
+                    return;
+                }
+                detalles.push({ producto_id: productoId, cantidad: cantidad });
+            });
+
+            if (!valido || detalles.length === 0) {
+                showToast("Verifica los productos y cantidades seleccionadas.", "error");
                 return;
             }
 
             showLoader(true);
-            const { data: nuevoPedido, error: errPed } = await supabaseClient
-                .from("pedidos")
-                .insert([{ cliente_nombre: nombre, cliente_identificacion: identificacion }])
-                .select()
-                .single();
+            try {
+                const { data: pedidoCreado, error: errorPedido } = await supabaseClient
+                    .from("pedidos")
+                    .insert([{ cliente_nombre: nombre, cliente_identificacion: identificacion }])
+                    .select()
+                    .single();
 
-            if (errPed) { 
+                if (errorPedido) throw errorPedido;
+
+                const pedidoId = pedidoCreado.id;
+                const detallesConId = detalles.map(d => ({
+                    pedido_id: pedidoId,
+                    producto_id: d.producto_id,
+                    cantidad: d.cantidad
+                }));
+
+                const { error: errorDetalles } = await supabaseClient
+                    .from("detalle_pedidos")
+                    .insert(detallesConId);
+
+                if (errorDetalles) throw errorDetalles;
+
                 showLoader(false);
-                showToast("Error al crear pedido: " + errPed.message, "error"); 
-                return; 
+                showToast("¡Pedido registrado con éxito!", "success");
+                formPedido.reset();
+                if (contenedor) contenedor.innerHTML = "";
+                agregarFilaProducto();
+                cargarPedidos();
+            } catch (err) {
+                showLoader(false);
+                console.error("Error al registrar el pedido:", err);
+                showToast("Error al guardar el pedido: " + err.message, "error");
             }
-
-            for (let item of itemsPedido) {
-                await supabaseClient.from("detalle_pedidos").insert([{
-                    pedido_id: nuevoPedido.id,
-                    producto_id: item.producto_id,
-                    cantidad: item.cantidad,
-                    precio_unitario: item.precio_unitario
-                }]);
-
-                const prodActual = productosDisponibles.find(p => p.id === item.producto_id);
-                await supabaseClient
-                    .from("productos")
-                    .update({ stock: prodActual.stock - item.cantidad })
-                    .eq("id", item.producto_id);
-            }
-
-            showLoader(false);
-            showToast("¡Pedido registrado con éxito y stock actualizado!", "success");
-            setTimeout(() => { window.location.href = "datos.html"; }, 1500);
         });
     }
 }
 
 function agregarFilaProducto() {
-    const contenedor = document.getElementById("contenedor-productos-pedido");
+    const contenedor = document.getElementById("contenedor-lineas-pedido");
     if (!contenedor) return;
-    
-    const div = document.createElement("div");
-    div.className = "fila-producto-item";
-    div.style.cssText = "display: flex; gap: 10px; margin-bottom: 10px; align-items: center;";
 
-    let opciones = productosDisponibles.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock} - $${p.precio})</option>`).join('');
-
-    div.innerHTML = `
-        <select class="select-producto" required style="flex: 2; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db;">
-            <option value="">Selecciona un producto</option>
-            ${opciones}
-        </select>
-        <input type="number" class="input-cantidad" placeholder="Cant." min="1" value="1" required style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db;">
-        <button type="button" class="btn-eliminar-linea" style="background: #ef4444; color: white; border: none; padding: 10px 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">✕</button>
+    const filaId = Date.now() + Math.random();
+    const htmlFila = `
+        <div class="fila-producto" id="fila-${filaId}" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+            <select class="select-producto" style="flex: 2; padding: 8px;">
+                <option value="">Seleccione un producto</option>
+                ${productosDisponibles.map(p => `<option value="${p.id}" data-precio="${p.precio}">${p.nombre} (Stock: ${p.stock})</option>`).join('')}
+            </select>
+            <input type="number" class="input-cantidad" value="1" min="1" style="flex: 1; padding: 8px;" placeholder="Cant">
+            <button type="button" onclick="document.getElementById('fila-${filaId}').remove()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px;">X</button>
+        </div>
     `;
-
-    div.querySelector(".btn-eliminar-linea").addEventListener("click", () => {
-        if (document.querySelectorAll(".fila-producto-item").length > 1) {
-            div.remove();
-        } else {
-            showToast("El pedido debe tener al menos un producto.", "error");
-        }
-    });
-
-    contenedor.appendChild(div);
+    contenedor.insertAdjacentHTML('beforeend', htmlFila);
 }
 
 // ==========================================
-// CONTROL DE NUEVOS PRODUCTOS
-// ==========================================
-function abrirModalNuevoProducto() {
-    const panel = document.getElementById("panel-nuevo-producto");
-    if (panel) panel.style.display = "block";
-}
-
-function cerrarModalNuevoProducto() {
-    const panel = document.getElementById("panel-nuevo-producto");
-    if (panel) panel.style.display = "none";
-}
-
-async function guardarNuevoProducto() {
-    const nombre = document.getElementById("nuevo-prod-nombre").value.trim();
-    const categoria = document.getElementById("nuevo-prod-categoria").value.trim();
-    const precio = parseFloat(document.getElementById("nuevo-prod-precio").value);
-    const stock = parseInt(document.getElementById("nuevo-prod-stock").value);
-
-    if (!nombre || isNaN(precio) || isNaN(stock)) {
-        showToast("Por favor completa el nombre, precio y stock de forma correcta.", "error");
-        return;
-    }
-
-    showLoader(true);
-    const { error } = await supabaseClient
-        .from("productos")
-        .insert([{ nombre, categoria, precio, stock }]);
-    showLoader(false);
-
-    if (error) {
-        showToast("Error al registrar el producto: " + error.message, "error");
-        return;
-    }
-
-    showToast("¡Producto agregado con éxito!", "success");
-    
-    document.getElementById("nuevo-prod-nombre").value = "";
-    document.getElementById("nuevo-prod-categoria").value = "";
-    document.getElementById("nuevo-prod-precio").value = "0.00";
-    document.getElementById("nuevo-prod-stock").value = "10";
-    cerrarModalNuevoProducto();
-
-    cargarProductos();
-}
-
-// ==========================================
-// CONTROL DE COMPRAS Y STOCK
-// ==========================================
-async function abrirModalCompra() {
-    const panel = document.getElementById("panel-compra");
-    const select = document.getElementById("select-producto-compra");
-    
-    if (!panel || !select) return;
-    panel.style.display = "block";
-    
-    const { data: productos, error } = await supabaseClient.from("productos").select("id, nombre, stock").order("nombre");
-    
-    if (error) {
-        showToast("Error al cargar productos: " + error.message, "error");
-        return;
-    }
-
-    select.innerHTML = productos && productos.length > 0 
-        ? productos.map(p => `<option value="${p.id}" data-stock="${p.stock}">${p.nombre} (Stock actual: ${p.stock})</option>`).join('')
-        : `<option value="">No hay productos disponibles</option>`;
-}
-
-function cerrarModalCompra() {
-    const panel = document.getElementById("panel-compra");
-    if (panel) panel.style.display = "none";
-}
-
-async function guardarCompraStock() {
-    const select = document.getElementById("select-producto-compra");
-    const inputCantidad = document.getElementById("cantidad-comprada");
-    
-    if (!select || !inputCantidad) return;
-
-    const productoId = parseInt(select.value);
-    const cantidadAgregada = parseInt(inputCantidad.value);
-
-    if (!productoId || !cantidadAgregada || cantidadAgregada <= 0) {
-        showToast("Por favor selecciona un producto válido y una cantidad mayor a 0.", "error");
-        return;
-    }
-
-    const optionSelected = select.options[select.selectedIndex];
-    const stockActual = parseInt(optionSelected.getAttribute("data-stock")) || 0;
-    const nuevoStock = stockActual + cantidadAgregada;
-
-    showLoader(true);
-    const { error } = await supabaseClient
-        .from("productos")
-        .update({ stock: nuevoStock })
-        .eq("id", productoId);
-    showLoader(false);
-
-    if (error) {
-        showToast("Error al actualizar el stock: " + error.message, "error");
-        return;
-    }
-
-    showToast("¡Inventario actualizado con éxito! Se sumaron " + cantidadAgregada + " unidades.", "success");
-    cerrarModalCompra();
-    cargarProductos();
-}
-
-// ==========================================
-// CONTROL DE SPINNER / LOADER GLOBAL
-// ==========================================
-function showLoader(show) {
-    let loader = document.getElementById('global-loader');
-    if (!loader && show) {
-        loader = document.createElement('div');
-        loader.id = 'global-loader';
-        loader.style.cssText = 'position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 10000; display: flex; justify-content: center; align-items: center;';
-        loader.innerHTML = '<div style="border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>';
-        document.body.appendChild(loader);
-        
-        if (!document.getElementById('loader-spin-style')) {
-            const style = document.createElement('style');
-            style.id = 'loader-spin-style';
-            style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
-            document.head.appendChild(style);
-        }
-    }
-    if (loader) {
-        loader.style.display = show ? 'flex' : 'none';
-    }
-}
-
-// ==========================================
-// SISTEMA DE NOTIFICACIONES TOAST PROFESIONAL
+// UTILIDADES UI (TOAST Y LOADER)
 // ==========================================
 function showToast(message, type = 'success') {
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        `;
-        document.body.appendChild(container);
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;';
+        document.body.appendChild(toastContainer);
     }
 
     const toast = document.createElement('div');
-    const bgColors = {
-        success: '#10b981', // Verde
-        error: '#ef4444',   // Rojo
-        info: '#3b82f6'     // Azul
-    };
-
     toast.style.cssText = `
-        background-color: ${bgColors[type] || '#333'};
-        color: white;
         padding: 12px 20px;
         border-radius: 6px;
-        font-size: 14px;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        opacity: 0;
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        transform: translateY(20px);
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: opacity 0.3s ease;
+        background: ${type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#10b981'};
     `;
-    toast.textContent = message;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    }, 10);
+    toast.innerText = message;
+    toastContainer.appendChild(toast);
 
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
         setTimeout(() => toast.remove(), 300);
-    }, 3500);
+    }, 3000);
+}
+
+function showLoader(show) {
+    let loader = document.getElementById('global-loader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'global-loader';
+        loader.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;';
+        loader.innerHTML = '<div style="background: white; color: #1e293b; padding: 20px 30px; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.2);">Procesando...</div>';
+        document.body.appendChild(loader);
+    }
+    loader.style.display = show ? 'flex' : 'none';
 }
