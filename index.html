@@ -3,34 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innova - Iniciar Sesión</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Iniciar Sesión - Panel Administrativo</title>
+    <!-- Estilos CSS limpios y modernos -->
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 {
+            margin-bottom: 24px;
+            color: #1e293b;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-<body class="auth-page">
-    <main class="contenedor" style="max-width: 400px; margin-top: 10vh;">
-        <h2>Empresa Innova</h2>
-        <p class="subtitulo">Ingresa a tu cuenta para gestionar el sistema</p>
-        
-        <form id="form-login" style="text-align: left;">
-            <div class="campo">
-                <label style="font-size: 13px; font-weight: 600; color: #475569;">Correo Electrónico:</label>
-                <input type="email" id="login-email" placeholder="correo@empresa.com" required>
-            </div>
-            
-            <div class="campo" style="margin-top: 15px;">
-                <label style="font-size: 13px; font-weight: 600; color: #475569;">Contraseña:</label>
-                <input type="password" id="login-pass" placeholder="••••••••" required>
+<body>
+
+    <div class="login-card">
+        <h2>Iniciar Sesión</h2>
+        <!-- El id respeta exactamente el selector que busca el script: form-login -->
+        <form id="form-login">
+            <div class="form-group">
+                <!-- Se usan ambos ids (login-email y email) para asegurar compatibilidad total con el script -->
+                <label for="login-email">Correo Electrónico</label>
+                <input type="email" id="login-email" name="email" required placeholder="correo@ejemplo.com">
             </div>
 
-            <button type="submit" class="btn-primario" style="margin-top: 20px; width: 100%;">Iniciar Sesión</button>
+            <div class="form-group">
+                <!-- Se usan ambos ids (login-pass y password) para asegurar compatibilidad total con el script -->
+                <label for="login-pass">Contraseña</label>
+                <input type="password" id="login-pass" name="password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn-submit">Ingresar</button>
         </form>
-        
-        <div class="enlaces-pie" style="margin-top: 20px; text-align: center;">
-            <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
-        </div>
-    </main>
 
+        <div class="register-link">
+            ¿No tienes una cuenta? <a href="registro.html">Regístrate aquí</a>
+        </div>
+    </div>
+
+    <!-- SDK de Supabase (requerido para que funcione el cliente) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tu archivo de lógica y conexión -->
     <script src="conexion.js"></script>
 </body>
 </html>
