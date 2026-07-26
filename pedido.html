@@ -15,12 +15,12 @@
         <form id="form-pedido" style="text-align: left;">
             <div class="campo">
                 <label style="font-size: 13px; font-weight: 600; color: #475569;">Nombre del Cliente:</label>
-                <input type="text" id="ped-nombre" placeholder="Ej. Carlos Pérez" required>
+                <input type="text" id="ped-nombre" placeholder="Nombre del Cliente" required>
             </div>
             
             <div class="campo">
                 <label style="font-size: 13px; font-weight: 600; color: #475569;">Identificación (Cédula o RIF):</label>
-                <input type="text" id="ped-identificacion" placeholder="Ej. V-12345678 o J-00000000-0" required>
+                <input type="text" id="ped-identificacion" placeholder="Cédula o Identificación" required>
             </div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e5e7eb;">
@@ -28,12 +28,12 @@
             <label style="font-size: 14px; font-weight: 700; color: #1e3a8a; display: block; margin-bottom: 10px;">Productos Requeridos:</label>
             
             <div id="contenedor-productos-pedido">
-                <!-- Las líneas de productos se inyectan dinámicamente aquí -->
+                <!-- Aquí el script insertará filas de productos de forma dinámica -->
             </div>
 
-            <button type="button" id="btn-agregar-linea" style="background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 20px; font-size: 13px;">+ Agregar otro producto</button>
+            <button type="button" id="btn-agregar-linea" style="background: #e0e7ff; color: #3730a3; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 20px; font-size: 13px;">+ Añadir otro producto</button>
 
-            <button type="submit" class="btn-primario">Guardar y Procesar Pedido</button>
+            <button type="submit" class="btn-primario">Registrar Pedido Completo</button>
         </form>
         
         <div class="enlaces-pie">
