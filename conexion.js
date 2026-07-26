@@ -23,30 +23,50 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            showLoader(true);
+            const email = emailInput.value.trim();
+            const password = passInput.value;
 
-            const { data: usuarios, error } = await supabaseClient
-                .from("usuarios")
-                .select("*")
-                .eq("email", emailInput.value.trim())
-                .eq("password", passInput.value);
-
-            showLoader(false);
-
-            if (error) { 
-                showToast("Error: " + error.message, "error"); 
-                return; 
+            if (!email || !password) {
+                showToast("Por favor, completa todos los campos.", "error");
+                return;
             }
 
-            if (usuarios && usuarios.length > 0) {
-                window.location.href = "datos.html";
-            } else {
-                showToast("Credenciales incorrectas.", "error");
+            showLoader(true);
+
+            try {
+                // Realizamos la consulta a la tabla 'usuarios' verificando credenciales
+                const { data: usuarios, error } = await supabaseClient
+                    .from("usuarios")
+                    .select("*")
+                    .eq("email", email)
+                    .eq("password", password);
+
+                showLoader(false);
+
+                if (error) {
+                    throw error;
+                }
+
+                // Manejamos la respuesta y ejecutamos la redirección si el usuario existe
+                if (usuarios && usuarios.length > 0) {
+                    showToast("¡Inicio de sesión exitoso! Redirigiendo...", "success");
+                    localStorage.setItem("usuario_conectado", JSON.stringify(usuarios[0]));
+                    setTimeout(() => {
+                        window.location.href = "datos.html";
+                    }, 1000);
+                } else {
+                    showToast("Correo o contraseña incorrectos.", "error");
+                }
+
+            } catch (err) {
+                showLoader(false);
+                console.error("Error en el login:", err);
+                showToast("Error al conectar con la base de datos: " + err.message, "error");
             }
         });
     }
 
-    // --- REGISTRO ---
+    // --- 2. REGISTRO ---
     const formRegistro = document.getElementById("form-registro");
     if (formRegistro) {
         formRegistro.addEventListener("submit", async (e) => {
@@ -64,6 +84,71 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 showToast("¡Usuario creado con éxito!", "success");
                 setTimeout(() => { window.location.href = "index.html"; }, 1500);
+            }
+        });
+    }
+
+    // --- 3. CARGA DE DATOS EN PANEL ---
+    if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos") || document.getElementById("cuerpo-instalaciones")) {
+        cargarTodo();
+    }
+
+    // --- 4. INICIALIZAR VISTA DE NUEVO PEDIDO ---
+    if (document.getElementById("form-pedido")) {
+        inicializarFormularioPedido();
+    }
+
+    // --- 5. ENVÍO DEL FORMULARIO CRUD DINÁMICO ---
+    const crudForm = document.getElementById('crud-form');
+    if (crudForm) {
+        crudForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!supabaseClient) return;
+
+            const isEditing = editingRecordId !== null;
+            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro en Supabase...', 'info');
+            let formData = {};
+
+            try {
+                if (typeof currentTab !== 'undefined' && currentTab === 'clientes') {
+                    formData = {
+                        nombre: document.getElementById('c-nombre').value.trim(),
+                        telefono: document.getElementById('c-telefono').value.trim(),
+                        direccion: document.getElementById('c-direccion').value.trim(),
+                        historial_financiero: document.getElementById('c-historial').value
+                    };
+                } else if (typeof currentTab !== 'undefined' && currentTab === 'productos') {
+                    formData = {
+                        nombre: document.getElementById('pr-descripcion').value.trim(),
+                        stock: parseInt(document.getElementById('pr-stock').value),
+                        precio: parseFloat(document.getElementById('pr-precio').value)
+                    };
+                }
+
+                let queryResponse;
+                const pkField = getPrimaryKeyField(typeof currentTab !== 'undefined' ? currentTab : 'clientes');
+
+                if (isEditing) {
+                    queryResponse = await supabaseClient
+                        .from(currentTab)
+                        .update(formData)
+                        .eq(pkField, editingRecordId)
+                        .select();
+                } else {
+                    queryResponse = await supabaseClient
+                        .from(currentTab)
+                        .insert([formData])
+                        .select();
+                }
+
+                if (queryResponse.error) throw queryResponse.error;
+
+                showToast(isEditing ? '¡Registro actualizado correctamente!' : '¡Registro agregado correctamente!', 'success');
+                closeCrudFormModal();
+                cargarTodo();
+            } catch (err) {
+                console.error('Error al guardar/actualizar:', err);
+                showToast('Error en la operación: ' + err.message, 'error');
             }
         });
     }
