@@ -10,19 +10,25 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 document.addEventListener("DOMContentLoaded", () => {
     
     // --- LOGIN ---
+   // --- LOGIN ---
     const formLogin = document.getElementById("form-login");
     if (formLogin) {
         formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
+            console.log("1. El formulario de login fue interceptado correctamente.");
+
             const emailInput = document.getElementById("login-email") || document.getElementById("email");
             const passInput = document.getElementById("login-pass") || document.getElementById("password");
             
             if (!emailInput || !passInput) {
+                console.log("Error: No se encontraron los inputs.");
                 showToast("Error: No se encontraron los campos de texto.", "error");
                 return;
             }
 
+            console.log("2. Enviando consulta a Supabase con email:", emailInput.value.trim());
             showLoader(true);
+
             const { data: usuarios, error } = await supabaseClient
                 .from("usuarios")
                 .select("*")
@@ -30,6 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 .eq("password", passInput.value);
 
             showLoader(false);
+            console.log("3. Respuesta recibida de Supabase. Error:", error);
+            console.log("4. Usuarios encontrados:", usuarios);
 
             if (error) { 
                 showToast("Error: " + error.message, "error"); 
@@ -37,8 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (usuarios && usuarios.length > 0) {
+                console.log("5. ¡Credenciales correctas! Redirigindo a datos.html...");
                 window.location.href = "datos.html";
             } else {
+                console.log("6. Credenciales incorrectas (array vacío).");
                 showToast("Credenciales incorrectas.", "error");
             }
         });
