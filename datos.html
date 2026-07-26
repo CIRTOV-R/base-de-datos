@@ -61,7 +61,32 @@
         </section>
 
         <br><hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;"><br>
+        <!-- SECCIÓN DE INSTALACIONES Y TÉCNICOS -->
+        <section class="seccion-tabla">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0;">Control de Instalaciones y Técnicos Asignados</h3>
+                <button onclick="cargarInstalaciones()" style="background: #475569; padding: 8px 14px; font-size: 13px;">Actualizar Instalaciones</button>
+            </div>
 
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Inst.</th>
+                        <th>Pedido #</th>
+                        <th>Técnico Responsable</th>
+                        <th>Dispositivo / Material Instalado</th>
+                        <th>Cantidad</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-instalaciones">
+                    <!-- Dinámico desde JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <br><hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;"><br>
+        
         <!-- SECCIÓN DE INVENTARIO Y PRODUCTOS -->
         <section class="seccion-tabla">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -100,7 +125,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <!-- Panel Oculto para Registrar Entrada de Mercancía / Compra -->
             <div id="panel-compra" style="display: none; background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
                 <h4 style="margin-top: 0; margin-bottom: 12px; color: #1e293b;">Registrar Entrada de Mercancía (Aumentar Stock)</h4>

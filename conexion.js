@@ -140,8 +140,51 @@ function cargarTodo() {
     cargarClientes();
     cargarProductos();
     cargarPedidos();
+    cargarInstalaciones();
+}
+// Actualiza la función cargarTodo para que incluya las instalaciones
+function cargarTodo() {
+    cargarClientes();
+    cargarProductos();
+    cargarPedidos();
+    cargarInstalaciones(); // <-- Sincroniza la nueva sección de técnicos e instalaciones
 }
 
+// Función encargada de consultar la tabla de instalaciones y rellenar el HTML
+async function cargarInstalaciones() {
+    const tabla = document.getElementById("cuerpo-instalaciones");
+    if (!tabla) return;
+
+    const { data: instalaciones, error } = await supabaseClient
+        .from("instalaciones")
+        .select(`
+            id,
+            fecha_instalacion,
+            cantidad_instalada,
+            pedidos ( id, cliente_nombre ),
+            tecnicos ( nombre ),
+            productos ( nombre )
+        `)
+        .order("id", { ascending: false });
+
+    if (error) {
+        console.error("Error al cargar instalaciones:", error);
+        return;
+    }
+
+    tabla.innerHTML = instalaciones && instalaciones.length > 0
+        ? instalaciones.map(i => `
+            <tr>
+                <td>#${i.id}</td>
+                <td>Pedido #${i.pedidos?.id || 'N/A'} <br><small style="color: #64748b;">${i.pedidos?.cliente_nombre || ''}</small></td>
+                <td><strong>${i.tecnicos?.nombre || 'Sin asignar'}</strong></td>
+                <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
+                <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
+                <td>${i.fecha_instalacion || 'N/A'}</td>
+            </tr>
+        `).join('')
+        : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">🔧 No hay instalaciones registradas todavía.</td></tr>`;
+}
 async function cargarClientes() {
     const tabla = document.getElementById("cuerpo-tabla");
     if (!tabla) return;
