@@ -61,11 +61,46 @@
         </section>
 
         <br><hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;"><br>
+
         <!-- SECCIÓN DE INSTALACIONES Y TÉCNICOS -->
         <section class="seccion-tabla">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h3 style="margin: 0;">Control de Instalaciones y Técnicos Asignados</h3>
-                <button onclick="cargarInstalaciones()" style="background: #475569; padding: 8px 14px; font-size: 13px;">Actualizar Instalaciones</button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="abrirModalInstalacion()" style="background: #2563eb; color: white; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">+ Registrar Nueva Instalación</button>
+                    <button onclick="cargarInstalaciones()" style="background: #475569; padding: 8px 14px; font-size: 13px; color: white; border: none; border-radius: 6px; cursor: pointer;">Actualizar Instalaciones</button>
+                </div>
+            </div>
+
+            <!-- Panel Oculto para Registrar Instalación -->
+            <div id="panel-instalacion" style="display: none; background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+                <h4 style="margin-top: 0; margin-bottom: 12px; color: #1e293b;">Registrar Nueva Instalación</h4>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">ID del Pedido:</label>
+                        <input type="number" id="inst-pedido-id" placeholder="Ej: 1" style="width:100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 2; min-width: 200px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Técnico Responsable:</label>
+                        <select id="inst-select-tecnico" style="width:100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"></select>
+                    </div>
+                    <div style="flex: 2; min-width: 200px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Dispositivo / Producto:</label>
+                        <select id="inst-select-producto" style="width:100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"></select>
+                    </div>
+                    <div style="width: 100px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Cantidad:</label>
+                        <input type="number" id="inst-cantidad" min="1" value="1" style="width:100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 2; min-width: 200px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Observaciones:</label>
+                        <input type="text" id="inst-observaciones" placeholder="Ej: Instalado con éxito" style="width:100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="guardarInstalacion()" style="background: #10b981; color: white; border: none; padding: 9px 15px; border-radius: 6px; cursor: pointer;">Guardar</button>
+                        <button onclick="cerrarModalInstalacion()" style="background: #94a3b8; color: white; border: none; padding: 9px 15px; border-radius: 6px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
             </div>
 
             <table>
@@ -86,7 +121,7 @@
         </section>
 
         <br><hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;"><br>
-        
+
         <!-- SECCIÓN DE INVENTARIO Y PRODUCTOS -->
         <section class="seccion-tabla">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">

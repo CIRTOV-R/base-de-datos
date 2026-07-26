@@ -331,6 +331,469 @@ function getPrimaryKeyField(tableName) {
     return keys[tableName] || 'id';
 }
 
+
+async function abrirModalInstalacion() {
+    const panel = document.getElementById("panel-instalacion");
+    const selectTecnico = document.getElementById("inst-select-tecnico");
+    const selectProducto = document.getElementById("inst-select-producto");
+    
+    if (!panel) return;
+    panel.style.display = "block";
+
+    // Cargar técnicos desde la base de datos
+    const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
+    selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
+        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
+        : `<option value="">No hay técnicos registrados</option>`;
+
+    // Cargar productos desde la base de datos
+    const { data: productos } = await supabaseClient.from("productos").select("id, nombre").order("nombre");
+    selectProducto.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+        : `<option value="">No hay productos disponibles</option>`;
+}
+
+function cerrarModalInstalacion() {
+    const panel = document.getElementById("panel-instalacion");
+    if (panel) panel.style.display = "none";
+}
+
+async function guardarInstalacion() {
+    const pedidoId = parseInt(document.getElementById("inst-pedido-id").value);
+    const tecnicoId = parseInt(document.getElementById("inst-select-tecnico").value);
+    const productoId = parseInt(document.getElementById("inst-select-producto").value);
+    const cantidad = parseInt(document.getElementById("inst-cantidad").value);
+    const observaciones = document.getElementById("inst-observaciones").value.trim();
+
+    if (!pedidoId || !tecnicoId || !productoId || !cantidad) {
+        showToast("Por favor completa los campos obligatorios de la instalación.", "error");
+        return;
+    }
+
+    showLoader(true);
+    // Inserción mapeada directamente a los nombres exactos de tus columnas
+    const { error } = await supabaseClient.from("instalaciones").insert([{
+        pedido_id: pedidoId,
+        tecnico_id: tecnicoId,
+        producto_id: productoId,
+        cantidad_instalada: cantidad,
+        observaciones: observaciones
+    }]);
+
+    // Si el usuario seleccionó una fecha específica, la agregamos; si no, Supabase usará el valor por defecto (CURRENT_DATE)
+    if (fechaInstalacion) {
+        datosInsertar.fecha_instalacion = fechaInstalacion;
+    }
+
+    showLoader(false);
+
+    if (error) {
+        showToast("Error al registrar instalación: " + error.message, "error");
+        return;
+    }
+
+    showToast("¡Instalación registrada con éxito!", "success");
+    cerrarModalInstalacion();
+    cargarInstalaciones(); // Recarga la tabla automáticamente para ver el cambio
+}
+
+
+
+// ==========================================
+// CONFIGURACIÓN DE SUPABASE
+// Proyecto creado por Victor Rodrigues UTS Guayana 
+// ==========================================
+const SUPABASE_URL = "https://heshjmfxuxiczjllnmnp.supabase.co"; 
+const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // --- LOGIN ---
+    const formLogin = document.getElementById("form-login");
+    if (formLogin) {
+        formLogin.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById("login-email") || document.getElementById("email");
+            const passInput = document.getElementById("login-pass") || document.getElementById("password");
+            
+            if (!emailInput || !passInput) {
+                showToast("Error: No se encontraron los campos de texto.", "error");
+                return;
+            }
+
+            showLoader(true);
+            const { data: usuarios, error } = await supabaseClient
+                .from("usuarios")
+                .select("*")
+                .eq("email", emailInput.value.trim())
+                .eq("password", passInput.value);
+
+            showLoader(false);
+
+            if (error) { 
+                showToast("Error: " + error.message, "error"); 
+                return; 
+            }
+
+            if (usuarios && usuarios.length > 0) {
+                window.location.href = "datos.html";
+            } else {
+                showToast("Credenciales incorrectas.", "error");
+            }
+        });
+    }
+
+    // --- REGISTRO ---
+    const formRegistro = document.getElementById("form-registro");
+    if (formRegistro) {
+        formRegistro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById("reg-nombre").value.trim();
+            const email = document.getElementById("reg-email").value.trim();
+            const password = document.getElementById("reg-pass").value;
+
+            showLoader(true);
+            const { error } = await supabaseClient.from("usuarios").insert([{ nombre, email, password }]);
+            showLoader(false);
+
+            if (error) {
+                showToast("Error al registrar: " + error.message, "error");
+            } else {
+                showToast("¡Usuario creado con éxito!", "success");
+                setTimeout(() => { window.location.href = "index.html"; }, 1500);
+            }
+        });
+    }
+
+    // --- CARGA DE DATOS EN PANEL ---
+    if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos")) {
+        cargarTodo();
+    }
+
+    // --- INICIALIZAR VISTA DE NUEVO PEDIDO ---
+    if (document.getElementById("form-pedido")) {
+        inicializarFormularioPedido();
+    }
+
+    // --- ENVÍO DEL FORMULARIO CRUD DINÁMICO (Crear o Actualizar) ---
+    const crudForm = document.getElementById('crud-form');
+    if (crudForm) {
+        crudForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!supabaseClient) return;
+
+            const isEditing = editingRecordId !== null;
+            showToast(isEditing ? 'Actualizando registro...' : 'Insertando registro en Supabase...', 'info');
+            let formData = {};
+
+            try {
+                if (typeof currentTab !== 'undefined' && currentTab === 'clientes') {
+                    formData = {
+                        nombre: document.getElementById('c-nombre').value.trim(),
+                        telefono: document.getElementById('c-telefono').value.trim(),
+                        direccion: document.getElementById('c-direccion').value.trim(),
+                        historial_financiero: document.getElementById('c-historial').value
+                    };
+                } else if (typeof currentTab !== 'undefined' && currentTab === 'productos') {
+                    formData = {
+                        nombre: document.getElementById('pr-descripcion').value.trim(),
+                        stock: parseInt(document.getElementById('pr-stock').value),
+                        precio: parseFloat(document.getElementById('pr-precio').value)
+                    };
+                }
+
+                let queryResponse;
+                const pkField = getPrimaryKeyField(typeof currentTab !== 'undefined' ? currentTab : 'clientes');
+
+                if (isEditing) {
+                    queryResponse = await supabaseClient
+                        .from(currentTab)
+                        .update(formData)
+                        .eq(pkField, editingRecordId)
+                        .select();
+                } else {
+                    queryResponse = await supabaseClient
+                        .from(currentTab)
+                        .insert([formData])
+                        .select();
+                }
+
+                if (queryResponse.error) throw queryResponse.error;
+
+                showToast(isEditing ? '¡Registro actualizado correctamente!' : '¡Registro agregado correctamente!', 'success');
+                closeCrudFormModal();
+                cargarTodo();
+            } catch (err) {
+                console.error('Error al guardar/actualizar:', err);
+                showToast('Error en la operación: ' + err.message, 'error');
+            }
+        });
+    }
+});
+
+// ==========================================
+// FUNCIONES GLOBALES DEL PANEL
+// ==========================================
+function cargarTodo() {
+    cargarClientes();
+    cargarProductos();
+    cargarPedidos();
+    cargarInstalaciones(); // Sincroniza la sección de técnicos e instalaciones
+}
+
+// Función encargada de consultar la tabla de instalaciones y rellenar el HTML
+async function cargarInstalaciones() {
+    const tabla = document.getElementById("cuerpo-instalaciones");
+    if (!tabla) return;
+
+    const { data: instalaciones, error } = await supabaseClient
+        .from("instalaciones")
+        .select(`
+            id,
+            fecha_instalacion,
+            cantidad_instalada,
+            pedidos ( id, cliente_nombre ),
+            tecnicos ( nombre ),
+            productos ( nombre )
+        `)
+        .order("id", { ascending: false });
+
+    if (error) {
+        console.error("Error al cargar instalaciones:", error);
+        return;
+    }
+
+    tabla.innerHTML = instalaciones && instalaciones.length > 0
+        ? instalaciones.map(i => `
+            <tr>
+                <td>#${i.id}</td>
+                <td>Pedido #${i.pedidos?.id || 'N/A'} <br><small style="color: #64748b;">${i.pedidos?.cliente_nombre || ''}</small></td>
+                <td><strong>${i.tecnicos?.nombre || 'Sin asignar'}</strong></td>
+                <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
+                <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
+                <td>${i.fecha_instalacion || 'N/A'}</td>
+            </tr>
+        `).join('')
+        : `<tr><td colspan="6" style="text-align:center; padding: 20px; color: #64748b;">🔧 No hay instalaciones registradas todavía.</td></tr>`;
+}
+
+async function cargarClientes() {
+    const tabla = document.getElementById("cuerpo-tabla");
+    if (!tabla) return;
+    
+    const { data: clientes, error } = await supabaseClient.from("clientes").select("*").order("id");
+    if (error) {
+        console.error("Error al cargar clientes:", error);
+        return;
+    }
+
+    tabla.innerHTML = clientes && clientes.length ? clientes.map(c => `
+        <tr>
+            <td>#${c.id}</td>
+            <td>${c.nombre || 'N/A'}</td>
+            <td>${c.empresa || 'N/A'}</td>
+            <td>${c.telefono || 'N/A'}</td>
+            <td><span class="badge">${c.ciudad || 'N/A'}</span></td>
+        </tr>
+    `).join('') : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📂 No hay clientes registrados.</td></tr>`;
+}
+
+async function cargarProductos() {
+    const tabla = document.getElementById("cuerpo-productos");
+    if (!tabla) return;
+    
+    const { data: productos, error } = await supabaseClient.from("productos").select("*").order("id");
+    
+    if (error) {
+        showToast("Error al cargar inventario: " + error.message, "error");
+        return;
+    }
+
+    tabla.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `
+            <tr>
+                <td>#${p.id}</td>
+                <td><strong>${p.nombre}</strong></td>
+                <td>${p.categoria || 'N/A'}</td>
+                <td><span class="precio" style="color: #10b981; font-weight: 600;">$${Number(p.precio).toFixed(2)}</span></td>
+                <td>${p.stock} u.</td>
+            </tr>
+        `).join('') 
+        : `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">📦 Sin inventario disponible.</td></tr>`;
+}
+
+async function cargarPedidos() {
+    const tabla = document.getElementById("cuerpo-pedidos");
+    if (!tabla) return;
+    
+    const { data: pedidos, error } = await supabaseClient
+        .from("pedidos")
+        .select("*, detalle_pedidos(*, productos(nombre))")
+        .order("id", { ascending: false });
+    
+    if (error || !pedidos || pedidos.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #64748b;">📋 No hay pedidos registrados.</td></tr>`;
+        return;
+    }
+
+    tabla.innerHTML = pedidos.map(ped => {
+        const items = ped.detalle_pedidos && ped.detalle_pedidos.length > 0 
+            ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
+            : 'Sin detalles';
+            
+        return `
+            <tr>
+                <td>#${ped.id}</td>
+                <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
+                <td>${items}</td>
+                <td>${new Date(ped.created_at).toLocaleDateString()}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Variable global para rastrear si estamos editando
+let editingRecordId = null;
+
+async function openEditModal(tableName, recordId) {
+    editingRecordId = recordId;
+    const titleEl = document.getElementById('form-modal-title');
+    if (titleEl) titleEl.innerText = `Editar Registro (${tableName})`;
+    
+    showLoader(true);
+    try {
+        const { data, error } = await supabaseClient
+            .from(tableName)
+            .select('*')
+            .eq(getPrimaryKeyField(tableName), recordId)
+            .single();
+
+        if (error) throw error;
+
+        if (typeof renderFormFields === 'function') {
+            renderFormFields(tableName, data);
+        }
+        const overlay = document.getElementById('form-overlay');
+        if (overlay) overlay.classList.remove('hidden');
+    } catch (err) {
+        console.error('Error al cargar registro para editar:', err);
+        showToast('No se pudo cargar el registro: ' + err.message, 'error');
+    } finally {
+        showLoader(false);
+    }
+}
+
+function closeCrudFormModal() {
+    const overlay = document.getElementById('form-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    editingRecordId = null;
+}
+
+async function deleteRecord(tableName, recordId) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar este registro de ${tableName}?`)) return;
+    if (!supabaseClient) return showToast('Supabase no está configurado.', 'error');
+
+    showLoader(true);
+    try {
+        const pkField = getPrimaryKeyField(tableName);
+        const { error } = await supabaseClient
+            .from(tableName)
+            .delete()
+            .eq(pkField, recordId);
+
+        if (error) throw error;
+
+        showToast('Registro eliminado correctamente.', 'success');
+        cargarTodo();
+    } catch (err) {
+        console.error('Error al eliminar:', err);
+        showToast('Error al eliminar el registro: ' + err.message, 'error');
+    } finally {
+        showLoader(false);
+    }
+}
+
+function getPrimaryKeyField(tableName) {
+    const keys = {
+        'clientes': 'id_cliente',
+        'pedidos': 'id',
+        'productos': 'id',
+        'detalle_pedidos': 'id'
+    };
+    return keys[tableName] || 'id';
+}
+
+async function abrirModalInstalacion() {
+    const panel = document.getElementById("panel-instalacion");
+    const selectTecnico = document.getElementById("inst-select-tecnico");
+    const selectProducto = document.getElementById("inst-select-producto");
+    
+    if (!panel) return;
+    panel.style.display = "block";
+
+    // Cargar técnicos desde la base de datos
+    const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
+    selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
+        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
+        : `<option value="">No hay técnicos registrados</option>`;
+
+    // Cargar productos desde la base de datos
+    const { data: productos } = await supabaseClient.from("productos").select("id, nombre").order("nombre");
+    selectProducto.innerHTML = productos && productos.length > 0 
+        ? productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')
+        : `<option value="">No hay productos disponibles</option>`;
+}
+
+function cerrarModalInstalacion() {
+    const panel = document.getElementById("panel-instalacion");
+    if (panel) panel.style.display = "none";
+}
+
+async function guardarInstalacion() {
+    const pedidoId = parseInt(document.getElementById("inst-pedido-id").value);
+    const tecnicoId = parseInt(document.getElementById("inst-select-tecnico").value);
+    const productoId = parseInt(document.getElementById("inst-select-producto").value);
+    const cantidad = parseInt(document.getElementById("inst-cantidad").value);
+    const fechaInstalacion = document.getElementById("inst-fecha")?.value; // Captura correcta de la fecha
+    const observaciones = document.getElementById("inst-observaciones").value.trim();
+
+    if (!pedidoId || !tecnicoId || !productoId || !cantidad) {
+        showToast("Por favor completa los campos obligatorios de la instalación.", "error");
+        return;
+    }
+
+    showLoader(true);
+    
+    // Objeto base con los datos obligatorios mapeados
+    const datosInsertar = {
+        pedido_id: pedidoId,
+        tecnico_id: tecnicoId,
+        producto_id: productoId,
+        cantidad_instalada: cantidad,
+        observaciones: observaciones
+    };
+
+    // Si el usuario seleccionó una fecha específica, la agregamos; si no, Supabase usará el valor por defecto
+    if (fechaInstalacion) {
+        datosInsertar.fecha_instalacion = fechaInstalacion;
+    }
+
+    const { error } = await supabaseClient.from("instalaciones").insert([datosInsertar]);
+
+    showLoader(false);
+
+    if (error) {
+        showToast("Error al registrar instalación: " + error.message, "error");
+        return;
+    }
+
+    showToast("¡Instalación registrada con éxito!", "success");
+    cerrarModalInstalacion();
+    cargarInstalaciones(); // Recarga la tabla automáticamente para ver el cambio
+}
+
 // ==========================================
 // LÓGICA MULTI-PRODUCTO PARA PEDIDOS
 // ==========================================
