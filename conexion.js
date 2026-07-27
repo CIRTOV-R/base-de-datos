@@ -9,40 +9,49 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- LOGIN ---
-    const formLogin = document.getElementById("form-login");
-    if (formLogin) {
-        formLogin.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const emailInput = document.getElementById("login-email") || document.getElementById("email");
-            const passInput = document.getElementById("login-pass") || document.getElementById("password");
-            
-            if (!emailInput || !passInput) {
-                showToast("Error: No se encontraron los campos de texto.", "error");
-                return;
-            }
+    // Ejemplo de cómo manejar la respuesta de Supabase al iniciar sesión
+document.getElementById('form-login').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            showLoader(true);
-            const { data: usuarios, error } = await supabaseClient
-                .from("usuarios")
-                .select("*")
-                .eq("email", emailInput.value.trim())
-                .eq("password", passInput.value);
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-pass').value;
 
-            showLoader(false);
+    try {
+        // Consultar la tabla 'usuarios' para verificar las credenciales y obtener el rol
+        const { data: usuarios, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', email)
+            .eq('password', password); // Nota: En un entorno de producción real se recomienda usar auth.signInWithPassword
 
-            if (error) { 
-                showToast("Error: " + error.message, "error"); 
-                return; 
-            }
+        if (error) {
+            throw error;
+        }
 
-            if (usuarios && usuarios.length > 0) {
-                window.location.href = "datos.html";
+        if (usuarios && usuarios.length > 0) {
+            const usuarioEncontrado = usuarios[0];
+
+            // Guardar los datos o el rol en el almacenamiento local para usarlos en el panel
+            localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioEncontrado));
+            localStorage.setItem('userRole', usuarioEncontrado.rol);
+
+            // Redireccionamiento condicional según el rol
+            if (usuarioEncontrado.rol === 'admin') {
+                alert('¡Bienvenido, Administrador!');
+                window.location.href = 'datos.html'; // Panel completo con control de todo
             } else {
-                showToast("Credenciales incorrectas.", "error");
+                alert('¡Bienvenido, Usuario!');
+                window.location.href = 'portal-cliente.html'; // Vista exclusiva para hacer pedidos e instalaciones
             }
-        });
+        } else {
+            alert('Correo o contraseña incorrectos.');
+        }
+
+    } catch (err) {
+        console.error('Error al iniciar sesión:', err.message);
+        alert('Ocurrió un error al intentar iniciar sesión.');
     }
+    });
 
     // --- REGISTRO ---
     const formRegistro = document.getElementById("form-registro");
