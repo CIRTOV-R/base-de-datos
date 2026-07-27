@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -94,6 +94,7 @@
         }
 
         .form-group input,
+        .form-group select,
         .form-group textarea {
             width: 100%;
             padding: 10px 12px;
@@ -101,10 +102,12 @@
             border-radius: 6px;
             font-size: 14px;
             outline: none;
+            background-color: #fff;
             transition: border-color 0.2s;
         }
 
         .form-group input:focus,
+        .form-group select:focus,
         .form-group textarea:focus {
             border-color: #2563eb;
         }
@@ -145,8 +148,10 @@
             <h3>Realizar un Pedido</h3>
             <form id="form-pedido">
                 <div class="form-group">
-                    <label for="producto">Producto o Servicio</label>
-                    <input type="text" id="producto" required placeholder="Ej. Licencia / Componente">
+                    <label for="producto">Seleccionar Producto o Servicio</label>
+                    <select id="producto" required>
+                        <option value="" disabled selected>Cargando productos disponibles...</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="cantidad">Cantidad</label>
@@ -181,8 +186,41 @@
         </div>
     </main>
 
+    <!-- Librería de Supabase y archivo de conexión -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="conexion.js"></script>
+
     <script>
-        // Validación de seguridad al cargar la página
+        // Función para cargar los productos desde Supabase al combobox
+        async function cargarProductosEnStock() {
+            const selectProducto = document.getElementById('producto');
+            
+            try {
+                const { data: productos, error } = await supabaseClient
+                    .from('productos') 
+                    .select('*');
+
+                if (error) throw error;
+
+                selectProducto.innerHTML = '<option value="" disabled selected>Selecciona un producto</option>';
+
+                if (productos && productos.length > 0) {
+                    productos.forEach(prod => {
+                        const option = document.createElement('option');
+                        option.value = prod.nombre; 
+                        option.textContent = `${prod.nombre} (Disponibles: ${prod.stock ?? 'Stock'})`; 
+                        selectProducto.appendChild(option);
+                    });
+                } else {
+                    selectProducto.innerHTML = '<option value="" disabled selected>No hay productos disponibles</option>';
+                }
+            } catch (err) {
+                console.error('Error al cargar productos:', err.message);
+                selectProducto.innerHTML = '<option value="" disabled selected>Error al cargar el stock</option>';
+            }
+        }
+
+        // Validación de seguridad y carga inicial al cargar la página
         document.addEventListener('DOMContentLoaded', () => {
             const rolActual = localStorage.getItem('userRole');
             const usuarioData = JSON.parse(localStorage.getItem('usuarioLogueado'));
@@ -197,6 +235,9 @@
             if (usuarioData && usuarioData.email) {
                 document.getElementById('welcome-msg').textContent = `Portal de Cliente: ${usuarioData.email}`;
             }
+
+            // Cargar automáticamente los productos en el select
+            cargarProductosEnStock();
         });
 
         // Botón de cerrar sesión
@@ -219,5 +260,6 @@
             e.target.reset();
         });
     </script>
+
 </body>
 </html>
