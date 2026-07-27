@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Clientes - Innova</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 20px 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 20px;
+            color: #2563eb;
+        }
+
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
+
+        main {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            color: #1e293b;
+            font-size: 18px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 90px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 10px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="welcome-msg">Portal de Clientes</h1>
+        <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
+    </header>
+
+    <main>
+        <!-- Formulario de Pedidos -->
+        <div class="card">
+            <h3>Realizar un Pedido</h3>
+            <form id="form-pedido">
+                <div class="form-group">
+                    <label for="producto">Producto o Servicio</label>
+                    <input type="text" id="producto" required placeholder="Ej. Licencia / Componente">
+                </div>
+                <div class="form-group">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="detalles-pedido">Detalles adicionales</label>
+                    <textarea id="detalles-pedido" placeholder="Especificaciones de tu pedido..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Enviar Pedido</button>
+            </form>
+        </div>
+
+        <!-- Formulario de Instalación -->
+        <div class="card">
+            <h3>Solicitar Instalación</h3>
+            <form id="form-instalacion">
+                <div class="form-group">
+                    <label for="equipo">Tipo de Equipo / Sistema</label>
+                    <input type="text" id="equipo" required placeholder="Ej. Red de oficina / Servidor">
+                </div>
+                <div class="form-group">
+                    <label for="fecha-pref">Fecha Preferida</label>
+                    <input type="date" id="fecha-pref" required>
+                </div>
+                <div class="form-group">
+                    <label for="detalles-inst">Ubicación o Notas</label>
+                    <textarea id="detalles-inst" placeholder="Dirección o instrucciones..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Solicitar Instalación</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Validación de seguridad al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const rolActual = localStorage.getItem('userRole');
+            const usuarioData = JSON.parse(localStorage.getItem('usuarioLogueado'));
+
+            // Si no hay sesión o es administrador, bloquear el acceso y devolver al login
+            if (!rolActual || rolActual === 'admin') {
+                alert('Acceso no autorizado.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (usuarioData && usuarioData.email) {
+                document.getElementById('welcome-msg').textContent = `Portal de Cliente: ${usuarioData.email}`;
+            }
+        });
+
+        // Botón de cerrar sesión
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = 'index.html';
+        });
+
+        // Simulación de envío de formularios
+        document.getElementById('form-pedido').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('¡Pedido registrado con éxito!');
+            e.target.reset();
+        });
+
+        document.getElementById('form-instalacion').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('¡Solicitud de instalación enviada correctamente!');
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>
