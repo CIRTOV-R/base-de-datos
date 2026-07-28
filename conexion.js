@@ -173,7 +173,7 @@ async function cargarInstalaciones() {
             fecha_instalacion,
             cantidad_instalada,
             pedidos ( id, cliente_nombre ),
-            tecnicos ( nombre ),
+            tecnicos ( nombre_completo ),
             productos ( nombre )
         `)
         .order("id", { ascending: false });
@@ -188,7 +188,7 @@ async function cargarInstalaciones() {
             <tr>
                 <td>#${i.id}</td>
                 <td>Pedido #${i.pedidos?.id || 'N/A'} <br><small style="color: #64748b;">${i.pedidos?.cliente_nombre || ''}</small></td>
-                <td><strong>${i.tecnicos?.nombre || 'Sin asignar'}</strong></td>
+                <td><strong>${i.tecnicos?.nombre_completo || 'Sin asignar'}</strong></td>
                 <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
                 <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
                 <td>${i.fecha_instalacion || 'N/A'}</td>
@@ -354,7 +354,7 @@ async function abrirModalInstalacion() {
     // Cargar técnicos desde la base de datos
     const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
     selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
-        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
+        ? tecnicos.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('')
         : `<option value="">No hay técnicos registrados</option>`;
 
     // Cargar productos desde la base de datos
