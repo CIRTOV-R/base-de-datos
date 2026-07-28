@@ -352,7 +352,7 @@ async function abrirModalInstalacion() {
     panel.style.display = "block";
 
     // Cargar técnicos desde la base de datos
-    const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre").order("nombre");
+    const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre_completo").order("nombre_completo");
     selectTecnico.innerHTML = tecnicos && tecnicos.length > 0 
         ? tecnicos.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('')
         : `<option value="">No hay técnicos registrados</option>`;
