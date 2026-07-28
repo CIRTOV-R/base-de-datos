@@ -64,12 +64,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = document.getElementById("reg-email").value.trim();
             const password = document.getElementById("reg-pass").value;
 
+            // 1. Validar que el nombre tenga al menos dos palabras (Nombre y Apellido) antes de enviar
+            const palabrasNombre = nombre.split(" ");
+            if (palabrasNombre.length < 2 || palabrasNombre[1] === "") {
+                showToast("Por favor, introduce tu nombre y apellido completo.", "error");
+                return; // Detiene el registro si solo escribe "Carlos"
+            }
+
+            // 2. Si pasa la validación, procede a enviar a Supabase
             showLoader(true);
             const { error } = await supabaseClient.from("usuarios").insert([{ nombre, email, password }]);
             showLoader(false);
 
-            if (error) {
-                showToast("Error al registrar: " + error.message, "error");
+            if (error) { 
+                showToast("Error al registrar: " + error.message, "error"); 
             } else {
                 showToast("¡Usuario creado con éxito!", "success");
                 setTimeout(() => { window.location.href = "index.html"; }, 1500);
