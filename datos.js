@@ -11,13 +11,13 @@ async function verificarAdmin() {
         }
 
         // Verificar si es admin (asumiendo que tienes un campo 'rol' en tu tabla de usuarios)
-        const { data: usuario } = await supabase
+        const { data: usuarios } = await supabase
             .from('usuarios')
             .select('rol')
             .eq('id', session.user.id)
             .single();
 
-        if (usuario?.rol !== 'admin') {
+        if (usuarios?.rol !== 'admin') {
             mostrarToast('Acceso denegado. Solo administradores.', 'error');
             setTimeout(() => {
                 window.location.href = 'portal-cliente.html';
