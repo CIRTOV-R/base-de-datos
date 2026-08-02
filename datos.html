@@ -441,5 +441,27 @@
     <!-- Scripts -->
     <script src="conexion.js"></script>
     <script src="datos.js"></script>
+        <!-- Script de conexión -->
+    <script src="conexion.js"></script>
+
+    <!-- Protección solo-admin -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
+
+        console.log("Rol en localStorage:", rol);
+
+        if (rol !== "admin") {
+          alert("Acceso denegado. Solo administradores.");
+          window.location.href = "portal-cliente.html";
+        } else {
+          console.log("Acceso permitido al panel de admin");
+          // Opcional: cargar datos del panel
+          // cargarTodo();
+        }
+      });
+    </script>
+  </body>
+</html>
 </body>
 </html>

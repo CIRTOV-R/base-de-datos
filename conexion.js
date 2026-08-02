@@ -12,48 +12,53 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- LOGIN ---
     const formLogin = document.getElementById("form-login");
     if (formLogin) {
-        formLogin.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const emailInput = document.getElementById("login-email") || document.getElementById("email");
-            const passInput = document.getElementById("login-pass") || document.getElementById("password");
-            
-            if (!emailInput || !passInput) {
-                showToast("Error: No se encontraron los campos de texto.", "error");
-                return;
-            }
+    formLogin.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById("login-email") || document.getElementById("email");
+        const passInput = document.getElementById("login-pass") || document.getElementById("password");
+        
+        if (!emailInput || !passInput) {
+            showToast("Error: No se encontraron los campos de texto.", "error");
+            return;
+        }
 
-            showLoader(true);
-            const { data: usuarios, error } = await supabaseClient
-                .from("usuarios")
-                .select("*")
-                .eq("email", emailInput.value.trim())
-                .eq("password", passInput.value);
+        showLoader(true);
+        const { data: usuarios, error } = await supabaseClient
+            .from("usuarios")              // ← nombre correcto
+            .select("*")
+            .eq("email", emailInput.value.trim())
+            .eq("password", passInput.value);   // ojo: password en texto plano, está bien para tarea
 
-            showLoader(false);
+        showLoader(false);
 
-            if (error) { 
-                showToast("Error: " + error.message, "error"); 
-                return; 
-            }
+        if (error) { 
+            showToast("Error: " + error.message, "error"); 
+            return; 
+        }
 
-            if (usuarios && usuarios.length > 0) {
-                const usuarioEncontrado = usuarios[0];
+        if (usuarios && usuarios.length > 0) {
+            const usuarioEncontrado = usuarios[0];
 
-                // Guardar los datos y el rol en el almacenamiento local
-                localStorage.setItem('usuarioLogueado', JSON.stringify(usuarioEncontrado));
-                localStorage.setItem('userRole', usuarioEncontrado.rol);
+            // Normalizar el rol (por si viene con espacios o mayúsculas)
+            const rolNormalizado = (usuarioEncontrado.rol || "").trim().toLowerCase();
 
-                // Redireccionamiento dinámico según el rol
-                if (usuarioEncontrado.rol === 'admin') {
-                    window.location.href = "datos.html";
-                } else {
-                    window.location.href = "portal-cliente.html";
-                }
+            // Guardar datos y rol en localStorage
+            localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioEncontrado));
+            localStorage.setItem("userRole", rolNormalizado);
+
+            console.log("Usuario logueado:", usuarioEncontrado.email, "Rol:", rolNormalizado);
+
+            // Redirección según rol
+            if (rolNormalizado === "admin") {
+                window.location.href = "datos.html";
             } else {
-                showToast("Credenciales incorrectas.", "error");
+                window.location.href = "portal-cliente.html";
             }
-        });
-    }
+        } else {
+            showToast("Credenciales incorrectas.", "error");
+        }
+    });
+}
 
     // --- REGISTRO ---
     const formRegistro = document.getElementById("form-registro");
