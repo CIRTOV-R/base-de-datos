@@ -19,7 +19,7 @@
             <a href="datos.html" class="nav-link active" aria-current="page">Panel</a>
             <a href="pedido.html" class="nav-link">Pedidos</a>
             <a href="portal-cliente.html" class="nav-link">Clientes</a>
-            <button id="btn-logout" class="btn-logout" onclick="logout()" aria-label="Cerrar sesión">
+            <button id="btn-logout" class="btn-logout" onclick="logoutLocal()" aria-label="Cerrar sesión">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
@@ -78,12 +78,9 @@
                             <th scope="col" class="acciones">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpo-pedidos">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
+                    <tbody id="cuerpo-pedidos"></tbody>
                 </table>
                 
-                <!-- Estado vacío -->
                 <div id="vacio-pedidos" class="estado-vacio" hidden>
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-2.586a1 1 0 0 0-.707.293l-2.414 2.414a1 1 0 0 1-.707.293h-3.172a1 1 0 0 1-.707-.293l-2.414-2.414A1 1 0 0 0 6.586 13H4"></path>
@@ -91,7 +88,6 @@
                     <p>No hay pedidos recientes</p>
                 </div>
 
-                <!-- Loader -->
                 <div id="loader-pedidos" class="loader" hidden>
                     <div class="spinner"></div>
                     <p>Cargando pedidos...</p>
@@ -103,12 +99,8 @@
         <section class="seccion" aria-labelledby="titulo-clientes">
             <div class="seccion-header">
                 <h3 id="titulo-clientes">Clientes Registrados</h3>
-                <button onclick="abrirModalCliente()" class="btn btn-icono" aria-label="Agregar cliente">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
+                <!-- Si no tienes abrirModalCliente, quita este botón o impleméntalo -->
+                <!-- <button onclick="abrirModalCliente()" class="btn btn-icono" aria-label="Agregar cliente">...</button> -->
             </div>
 
             <div class="tabla-contenedor">
@@ -123,7 +115,7 @@
                             <th scope="col" class="acciones">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpo-clientes"></tbody>
+                    <tbody id="cuerpo-tabla"></tbody>
                 </table>
                 <div id="vacio-clientes" class="estado-vacio" hidden>
                     <p>No hay clientes registrados</p>
@@ -174,7 +166,7 @@
             <div class="seccion-header">
                 <h3 id="titulo-inventario">Inventario de Productos</h3>
                 <div class="acciones-seccion">
-                    <button onclick="abrirModalProducto()" class="btn btn-exito btn-sm">
+                    <button onclick="abrirModalNuevoProducto()" class="btn btn-exito btn-sm">
                         + Producto
                     </button>
                     <button onclick="abrirModalCompra()" class="btn btn-primario btn-sm">
@@ -186,7 +178,7 @@
                 </div>
             </div>
 
-            <!-- Filtros de búsqueda -->
+            <!-- Filtros de búsqueda (de momento sin lógica, porque filtrarProductos no existe en conexion.js) -->
             <div class="filtros">
                 <div class="input-group">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -198,12 +190,10 @@
                         id="buscar-producto" 
                         placeholder="Buscar producto..." 
                         aria-label="Buscar producto por nombre"
-                        oninput="filtrarProductos()"
                     >
                 </div>
-                <select id="filtro-categoria" aria-label="Filtrar por categoría" onchange="filtrarProductos()">
+                <select id="filtro-categoria" aria-label="Filtrar por categoría">
                     <option value="">Todas las categorías</option>
-                    <!-- Se llena dinámicamente -->
                 </select>
             </div>
 
@@ -228,18 +218,16 @@
         </section>
     </main>
 
-    <!-- MODALES (Usando <dialog> nativo) -->
-    
+    <!-- MODALES -->
+    <!-- (reutilizan las funciones de conexion.js: abrirModalInstalacion, guardarInstalacion, etc.) -->
+
     <!-- Modal Nueva Instalación -->
     <dialog id="modal-instalacion" class="modal" aria-labelledby="titulo-modal-instalacion">
         <form method="dialog" class="modal-content">
             <div class="modal-header">
                 <h4 id="titulo-modal-instalacion">Registrar Nueva Instalación</h4>
                 <button type="button" onclick="cerrarModalInstalacion()" class="btn-cerrar" aria-label="Cerrar modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    ✕
                 </button>
             </div>
             
@@ -247,51 +235,27 @@
                 <div class="formulario-grid">
                     <div class="campo">
                         <label for="inst-pedido-id">ID del Pedido <span class="requerido">*</span></label>
-                        <input 
-                            type="number" 
-                            id="inst-pedido-id" 
-                            required 
-                            min="1"
-                            placeholder="Ej: 1"
-                            aria-required="true"
-                        >
+                        <input type="number" id="inst-pedido-id" required min="1" placeholder="Ej: 1">
                     </div>
-                    
                     <div class="campo">
                         <label for="inst-select-tecnico">Técnico Responsable <span class="requerido">*</span></label>
-                        <select id="inst-select-tecnico" required aria-required="true">
+                        <select id="inst-select-tecnico" required>
                             <option value="">Seleccionar técnico...</option>
-                            <!-- Se llena dinámicamente -->
                         </select>
                     </div>
-                    
                     <div class="campo">
                         <label for="inst-select-producto">Producto <span class="requerido">*</span></label>
-                        <select id="inst-select-producto" required aria-required="true">
+                        <select id="inst-select-producto" required>
                             <option value="">Seleccionar producto...</option>
-                            <!-- Se llena dinámicamente -->
                         </select>
                     </div>
-                    
                     <div class="campo">
                         <label for="inst-cantidad">Cantidad <span class="requerido">*</span></label>
-                        <input 
-                            type="number" 
-                            id="inst-cantidad" 
-                            required 
-                            min="1" 
-                            value="1"
-                            aria-required="true"
-                        >
+                        <input type="number" id="inst-cantidad" required min="1" value="1">
                     </div>
-                    
                     <div class="campo campo-completo">
                         <label for="inst-observaciones">Observaciones</label>
-                        <textarea 
-                            id="inst-observaciones" 
-                            rows="3" 
-                            placeholder="Ej: Instalación completada sin incidencias"
-                        ></textarea>
+                        <textarea id="inst-observaciones" rows="3"></textarea>
                     </div>
                 </div>
             </div>
@@ -308,15 +272,12 @@
     </dialog>
 
     <!-- Modal Nuevo Producto -->
-    <dialog id="modal-producto" class="modal" aria-labelledby="titulo-modal-producto">
+    <dialog id="modal-nuevo-producto" class="modal" aria-labelledby="titulo-modal-producto">
         <form method="dialog" class="modal-content">
             <div class="modal-header">
                 <h4 id="titulo-modal-producto">Registrar Nuevo Producto</h4>
-                <button type="button" onclick="cerrarModalProducto()" class="btn-cerrar" aria-label="Cerrar modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                <button type="button" onclick="cerrarModalNuevoProducto()" class="btn-cerrar" aria-label="Cerrar modal">
+                    ✕
                 </button>
             </div>
             
@@ -324,63 +285,25 @@
                 <div class="formulario-grid">
                     <div class="campo campo-completo">
                         <label for="nuevo-prod-nombre">Nombre del Producto <span class="requerido">*</span></label>
-                        <input 
-                            type="text" 
-                            id="nuevo-prod-nombre" 
-                            required 
-                            placeholder="Ej: Cámara de Seguridad 4K"
-                            maxlength="100"
-                            aria-required="true"
-                        >
+                        <input type="text" id="nuevo-prod-nombre" required placeholder="Ej: Cámara de Seguridad 4K">
                     </div>
-                    
                     <div class="campo">
                         <label for="nuevo-prod-categoria">Categoría <span class="requerido">*</span></label>
-                        <input 
-                            type="text" 
-                            id="nuevo-prod-categoria" 
-                            required 
-                            placeholder="Ej: Seguridad"
-                            list="lista-categorias"
-                            aria-required="true"
-                        >
-                        <datalist id="lista-categorias">
-                            <option value="Seguridad">
-                            <option value="Redes">
-                            <option value="Cámaras">
-                            <option value="Accesorios">
-                        </datalist>
+                        <input type="text" id="nuevo-prod-categoria" required placeholder="Ej: Seguridad">
                     </div>
-                    
                     <div class="campo">
                         <label for="nuevo-prod-precio">Precio (USD) <span class="requerido">*</span></label>
-                        <input 
-                            type="number" 
-                            id="nuevo-prod-precio" 
-                            required 
-                            step="0.01" 
-                            min="0" 
-                            value="0.00"
-                            aria-required="true"
-                        >
+                        <input type="number" id="nuevo-prod-precio" required step="0.01" min="0" value="0.00">
                     </div>
-                    
                     <div class="campo">
                         <label for="nuevo-prod-stock">Stock Inicial <span class="requerido">*</span></label>
-                        <input 
-                            type="number" 
-                            id="nuevo-prod-stock" 
-                            required 
-                            min="0" 
-                            value="10"
-                            aria-required="true"
-                        >
+                        <input type="number" id="nuevo-prod-stock" required min="0" value="10">
                     </div>
                 </div>
             </div>
             
             <div class="modal-footer">
-                <button type="button" onclick="cerrarModalProducto()" class="btn btn-secundario">
+                <button type="button" onclick="cerrarModalNuevoProducto()" class="btn btn-secundario">
                     Cancelar
                 </button>
                 <button type="submit" onclick="guardarNuevoProducto()" class="btn btn-exito">
@@ -396,10 +319,7 @@
             <div class="modal-header">
                 <h4 id="titulo-modal-compra">Registrar Entrada de Mercancía</h4>
                 <button type="button" onclick="cerrarModalCompra()" class="btn-cerrar" aria-label="Cerrar modal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    ✕
                 </button>
             </div>
             
@@ -407,22 +327,13 @@
                 <div class="formulario-grid">
                     <div class="campo campo-completo">
                         <label for="select-producto-compra">Producto <span class="requerido">*</span></label>
-                        <select id="select-producto-compra" required aria-required="true">
+                        <select id="select-producto-compra" required>
                             <option value="">Seleccionar producto...</option>
-                            <!-- Se llena dinámicamente -->
                         </select>
                     </div>
-                    
                     <div class="campo">
                         <label for="cantidad-comprada">Cantidad a Sumar <span class="requerido">*</span></label>
-                        <input 
-                            type="number" 
-                            id="cantidad-comprada" 
-                            required 
-                            min="1" 
-                            value="1"
-                            aria-required="true"
-                        >
+                        <input type="number" id="cantidad-comprada" required min="1" value="1">
                     </div>
                 </div>
             </div>
@@ -440,28 +351,28 @@
 
     <!-- Scripts -->
     <script src="conexion.js"></script>
-    <script src="datos.js"></script>
-        <!-- Script de conexión -->
-    <script src="conexion.js"></script>
-
-    <!-- Protección solo-admin -->
     <script>
+      // Logout que limpia localStorage
+      function logoutLocal() {
+        localStorage.removeItem("usuarioLogueado");
+        localStorage.removeItem("userRole");
+        window.location.href = "index.html";
+      }
+
+      // Protección solo-admin y carga de datos
       document.addEventListener("DOMContentLoaded", () => {
         const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
-
         console.log("Rol en localStorage:", rol);
 
         if (rol !== "admin") {
           alert("Acceso denegado. Solo administradores.");
           window.location.href = "portal-cliente.html";
-        } else {
-          console.log("Acceso permitido al panel de admin");
-          // Opcional: cargar datos del panel
-          // cargarTodo();
+          return;
         }
+
+        // Si es admin, carga los datos del panel
+        cargarTodo();
       });
     </script>
-  </body>
-</html>
 </body>
 </html>

@@ -9,9 +9,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // --- LOGIN ---
     const formLogin = document.getElementById("form-login");
-    if (formLogin) {
+if (formLogin) {
     formLogin.addEventListener("submit", async (e) => {
         e.preventDefault();
         const emailInput = document.getElementById("login-email") || document.getElementById("email");
@@ -24,10 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showLoader(true);
         const { data: usuarios, error } = await supabaseClient
-            .from("usuarios")              // ← nombre correcto
+            .from("usuarios")
             .select("*")
             .eq("email", emailInput.value.trim())
-            .eq("password", passInput.value);   // ojo: password en texto plano, está bien para tarea
+            .eq("password", passInput.value);
 
         showLoader(false);
 
@@ -38,17 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (usuarios && usuarios.length > 0) {
             const usuarioEncontrado = usuarios[0];
-
-            // Normalizar el rol (por si viene con espacios o mayúsculas)
             const rolNormalizado = (usuarioEncontrado.rol || "").trim().toLowerCase();
 
-            // Guardar datos y rol en localStorage
             localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioEncontrado));
             localStorage.setItem("userRole", rolNormalizado);
 
-            console.log("Usuario logueado:", usuarioEncontrado.email, "Rol:", rolNormalizado);
-
-            // Redirección según rol
             if (rolNormalizado === "admin") {
                 window.location.href = "datos.html";
             } else {
@@ -713,4 +706,26 @@ function showToast(message, type = 'success') {
         toast.style.transform = 'translateY(20px)';
         setTimeout(() => toast.remove(), 300);
     }, 3500);
+}
+// ==========================================
+// VERIFICAR ROL PARA PÁGINAS
+// ==========================================
+function protegerPaginaAdmin() {
+    const rolStr = localStorage.getItem("userRole");
+
+    if (!rolStr) {
+        alert("No hay sesión activa. Inicia sesión.");
+        window.location.href = "index.html";
+        return false;
+    }
+
+    const rol = rolStr.trim().toLowerCase();
+
+    if (rol !== "admin") {
+        alert("Acceso denegado. Solo administradores.");
+        window.location.href = "portal-cliente.html";
+        return false;
+    }
+
+    return true;
 }
