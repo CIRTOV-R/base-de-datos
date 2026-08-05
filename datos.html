@@ -18,6 +18,7 @@
         <div class="navbar-menu">
             <a href="datos.html" class="nav-link active" aria-current="page">Panel</a>
             <a href="pedido.html" class="nav-link">Pedidos</a>
+            <a href="form_facturacion.html" class="nav-link">Facturación</a>
             <a href="portal-cliente.html" class="nav-link">Clientes</a>
             <button id="btn-logout" class="btn-logout" onclick="logoutLocal()" aria-label="Cerrar sesión">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -247,83 +248,116 @@
         </section>
     </main>
 
-    <!-- PANEL NUEVA INSTALACIÓN (coincide con conexion.js) -->
-    <div id="panel-instalacion" style="display:none; background:#f8fafc; padding:20px; border-radius:8px; margin:20px; border:1px solid #e2e8f0;">
-        <h4 style="margin-top:0; margin-bottom:12px; color:#1e293b;">Registrar Nueva Instalación</h4>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-            <div style="flex:1; min-width:150px;">
-                <label>ID del Pedido:</label>
-                <input type="number" id="inst-pedido-id" placeholder="Ej: 1" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;">
+    <!-- MODAL NUEVA INSTALACIÓN -->
+    <div id="overlay-instalacion" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-instalacion">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-instalacion">Registrar Nueva Instalación</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalInstalacion()" aria-label="Cerrar">×</button>
             </div>
-            <div style="flex:2; min-width:200px;">
-                <label>Técnico Responsable:</label>
-                <select id="inst-select-tecnico" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;"></select>
+            <div class="modal-flotante-body">
+                <div class="campo">
+                    <label for="inst-pedido-id">ID del Pedido:</label>
+                    <input type="number" id="inst-pedido-id" placeholder="Ej: 1">
+                </div>
+                <div class="campo">
+                    <label for="inst-select-tecnico">Técnico Responsable:</label>
+                    <select id="inst-select-tecnico"></select>
+                </div>
+                <div class="campo">
+                    <label for="inst-select-producto">Dispositivo / Producto:</label>
+                    <select id="inst-select-producto"></select>
+                </div>
+                <div class="campo">
+                    <label for="inst-cantidad">Cantidad:</label>
+                    <input type="number" id="inst-cantidad" min="1" value="1">
+                </div>
+                <div class="campo">
+                    <label for="inst-observaciones">Observaciones:</label>
+                    <input type="text" id="inst-observaciones" placeholder="Ej: Instalado con éxito">
+                </div>
             </div>
-            <div style="flex:2; min-width:200px;">
-                <label>Dispositivo / Producto:</label>
-                <select id="inst-select-producto" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;"></select>
-            </div>
-            <div style="width:100px;">
-                <label>Cantidad:</label>
-                <input type="number" id="inst-cantidad" min="1" value="1" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;">
-            </div>
-            <div style="flex:2; min-width:200px;">
-                <label>Observaciones:</label>
-                <input type="text" id="inst-observaciones" placeholder="Ej: Instalado con éxito" style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:4px;">
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="guardarInstalacion()" style="background:#10b981; color:white; border:none; padding:9px 15px; border-radius:6px; cursor:pointer;">Guardar</button>
-                <button onclick="cerrarModalInstalacion()" style="background:#94a3b8; color:white; border:none; padding:9px 15px; border-radius:6px; cursor:pointer;">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PANEL NUEVO PRODUCTO (coincide con conexion.js) -->
-    <div id="panel-nuevo-producto" style="display:none; background:#f8fafc; padding:20px; border-radius:8px; margin:20px; border:1px solid #e2e8f0;">
-        <h4>Registrar Nuevo Producto en el Sistema</h4>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-            <div style="flex:2; min-width:180px;">
-                <label>Nombre del Producto:</label>
-                <input type="text" id="nuevo-prod-nombre" placeholder="Ej: Cámara Pro 4K">
-            </div>
-            <div style="flex:1; min-width:130px;">
-                <label>Categoría:</label>
-                <input type="text" id="nuevo-prod-categoria" placeholder="Ej: Seguridad">
-            </div>
-            <div style="width:110px;">
-                <label>Precio ($):</label>
-                <input type="number" id="nuevo-prod-precio" step="0.01" min="0" value="0.00">
-            </div>
-            <div style="width:100px;">
-                <label>Stock Inicial:</label>
-                <input type="number" id="nuevo-prod-stock" min="0" value="10">
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="guardarNuevoProducto()" style="background:#10b981; padding:10px 15px; color:white; border:none; border-radius:6px; cursor:pointer;">Guardar</button>
-                <button onclick="cerrarModalNuevoProducto()" style="background:#94a3b8; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer;">Cancelar</button>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-exito" onclick="guardarInstalacion()">Guardar</button>
+                <button class="btn btn-secundario" onclick="cerrarModalInstalacion()">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- PANEL COMPRA / AUMENTAR STOCK (coincide con conexion.js) -->
-    <div id="panel-compra" style="display:none; background:#f8fafc; padding:20px; border-radius:8px; margin:20px; border:1px solid #e2e8f0;">
-        <h4>Registrar Entrada de Mercancía (Aumentar Stock)</h4>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-            <div style="flex:2; min-width:220px;">
-                <label>Seleccionar Producto:</label>
-                <select id="select-producto-compra"></select>
+    <!-- MODAL ASIGNAR TÉCNICO A INSTALACIÓN -->
+    <div id="overlay-asignar-tecnico" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-tecnico">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-tecnico">Asignar Técnico a Instalación</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalAsignarTecnico()" aria-label="Cerrar">×</button>
             </div>
-            <div style="width:130px;">
-                <label>Cantidad a Sumar:</label>
-                <input type="number" id="cantidad-comprada" min="1" value="1">
+            <div class="modal-flotante-body">
+                <p id="tecnico-info-instalacion" style="font-size:14px; color:#64748b; background:#f1f5f9; padding:10px 14px; border-radius:8px; margin-bottom:16px;"></p>
+                <div class="campo">
+                    <label for="tecnico-select-reasignar">Técnico Responsable:</label>
+                    <select id="tecnico-select-reasignar"></select>
+                </div>
+                <input type="hidden" id="tecnico-instalacion-id">
             </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="guardarCompraStock()" style="background:#2563eb; padding:10px 15px; color:white; border:none; border-radius:6px; cursor:pointer;">
-                    Sumar al Stock
-                </button>
-                <button onclick="cerrarModalCompra()" style="background:#94a3b8; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer;">
-                    Cancelar
-                </button>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-primario" onclick="guardarTecnicoInstalacion()">Guardar</button>
+                <button class="btn btn-secundario" onclick="cerrarModalAsignarTecnico()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO PRODUCTO -->
+    <div id="overlay-nuevo-producto" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-producto">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-producto">Registrar Nuevo Producto en el Sistema</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalNuevoProducto()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body">
+                <div class="campo">
+                    <label for="nuevo-prod-nombre">Nombre del Producto:</label>
+                    <input type="text" id="nuevo-prod-nombre" placeholder="Ej: Cámara Pro 4K">
+                </div>
+                <div class="campo">
+                    <label for="nuevo-prod-categoria">Categoría:</label>
+                    <input type="text" id="nuevo-prod-categoria" placeholder="Ej: Seguridad">
+                </div>
+                <div class="campo">
+                    <label for="nuevo-prod-precio">Precio ($):</label>
+                    <input type="number" id="nuevo-prod-precio" step="0.01" min="0" value="0.00">
+                </div>
+                <div class="campo">
+                    <label for="nuevo-prod-stock">Stock Inicial:</label>
+                    <input type="number" id="nuevo-prod-stock" min="0" value="10">
+                </div>
+            </div>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-exito" onclick="guardarNuevoProducto()">Guardar</button>
+                <button class="btn btn-secundario" onclick="cerrarModalNuevoProducto()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL COMPRA / AUMENTAR STOCK -->
+    <div id="overlay-compra" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-compra">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-compra">Registrar Entrada de Mercancía (Aumentar Stock)</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalCompra()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body">
+                <div class="campo">
+                    <label for="select-producto-compra">Seleccionar Producto:</label>
+                    <select id="select-producto-compra"></select>
+                </div>
+                <div class="campo">
+                    <label for="cantidad-comprada">Cantidad a Sumar:</label>
+                    <input type="number" id="cantidad-comprada" min="1" value="1">
+                </div>
+            </div>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-primario" onclick="guardarCompraStock()">Sumar al Stock</button>
+                <button class="btn btn-secundario" onclick="cerrarModalCompra()">Cancelar</button>
             </div>
         </div>
     </div>

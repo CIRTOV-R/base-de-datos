@@ -108,3 +108,96 @@ git push origin main
 Una vez subido a GitHub, Vercel detecta el cambio y redepliega el proyecto automáticamente si está conectado al repo. En **Settings → Git → Ignored Build Step** se puede dejar el build estándar; no hay dependencias, así que el comando de build puede quedar vacío y el directorio de salida como raíz.
 
 > Nota: al ser sitio estático, Vercel solo sirve los archivos; la base de datos vive en Supabase y no requiere cambios de despliegue.
+
+---
+
+## 6. Segunda revisión: modales, técnicos y módulo de facturación
+
+### 6.1 Formularios en ventanas flotantes (modales)
+
+Los botones **+ Nueva Instalación**, **+ Producto** y **+ Compra** del panel ahora abren **modales flotantes** centrados en pantalla (con fondo oscuro, botón ✕, cierre al hacer clic fuera y con la tecla `Esc`), en lugar de abrirse al final de la página.
+
+- CSS nuevo en `styles.css`: `.modal-overlay`, `.modal-flotante`, `.modal-flotante-header/body/footer`.
+- HTML en `datos.html`: cada formulario quedó envuelto en `<div class="modal-overlay">`.
+- JS en `conexion.js`: las funciones `abrir/cerrar*Modal*` usan `classList.add/remove("mostrar")`.
+
+### 6.2 Botón "Asignar Técnico" por instalación
+
+En la tabla **Instalaciones y Técnicos** cada fila tiene ahora el botón **"Asignar Técnico"** que abre una ventana flotante con el resumen de la instalación (cliente, producto, cantidad) y un selector para **asignar/cambiar el técnico responsable**. Ejemplo de uso: *"El Técnico Víctor Rodríguez se le asignó la instalación #5"*.
+
+- Funciones nuevas en `conexion.js`: `abrirModalAsignarTecnico(id)`, `cerrarModalAsignarTecnico()`, `guardarTecnicoInstalacion()`.
+- Actualiza `instalaciones.tecnico_id` y recarga la tabla.
+
+### 6.3 Módulo de facturación (`form_facturacion.html`)
+
+Página profesional **separada**, accesible desde el menú **"Facturación"** (solo administradores). Permite:
+
+1. **Verificación de la base de datos** al entrar: comprueba la conexión con Supabase y que existan las tablas `facturas` y `factura_detalles`, mostrando un aviso claro si faltan.
+2. **Emitir factura** a partir de un pedido existente: se elige el pedido, se cargan sus productos, se calcula **subtotal, IVA (configurable, por defecto 16%) y total**, y se genera un número automático (`INV-AÑO-0001`).
+3. **Evita facturas duplicadas** por pedido.
+4. **Listado de facturas** con botones **Ver / Imprimir** (formato de factura imprimible) y **Eliminar**.
+5. **Manejo de errores**: `try/catch` en cada operación, mensajes toast, `showLoader`, botones deshabilitados durante el proceso y marca del pedido como `facturado` (si la columna existe).
+
+#### 6.3.1 Qué agregar en Supabase (Editor SQL)
+
+```sql
+-- ============================================
+-- MÓDULO DE FACTURACIÓN — ejecutar en Supabase (SQL Editor)
+-- ============================================
+
+-- Tabla de facturas
+create table if not exists public.facturas (
+  id bigint generated always as identity primary key,
+  numero_factura text not null unique,
+  pedido_id bigint references public.pedidos(id) on delete set null,
+  cliente_nombre text not null,
+  cliente_identificacion text,
+  fecha_emision timestamptz not null default now(),
+  subtotal numeric(12,2) not null default 0,
+  impuesto numeric(12,2) not null default 0,
+  total numeric(12,2) not null default 0,
+  iva_porcentaje numeric(5,2) not null default 16,
+  estado text not null default 'emitida',
+  created_at timestamptz not null default now()
+);
+
+-- Tabla de detalle de facturas
+create table if not exists public.factura_detalles (
+  id bigint generated always as identity primary key,
+  factura_id bigint not null references public.facturas(id) on delete cascade,
+  producto_id bigint references public.productos(id) on delete set null,
+  descripcion text,
+  cantidad int not null default 1,
+  precio_unitario numeric(12,2) not null default 0,
+  subtotal numeric(12,2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_factura_detalles_factura on public.factura_detalles(factura_id);
+
+-- Opcional: columna de estado en pedidos para marcar pedidos facturados
+alter table public.pedidos add column if not exists estado text default 'pendiente';
+
+-- ============================================
+-- RLS (políticas de acceso) — recomendado
+-- ============================================
+alter table public.facturas enable row level security;
+alter table public.factura_detalles enable row level security;
+
+create policy "lectura facturas" on public.facturas for select using (true);
+create policy "insercion facturas" on public.facturas for insert with check (true);
+create policy "borrado facturas" on public.facturas for delete using (true);
+create policy "lectura detalle facturas" on public.factura_detalles for select using (true);
+create policy "insercion detalle facturas" on public.factura_detalles for insert with check (true);
+```
+
+> Si tus otras tablas tienen RLS desactivada, puedes omitir la parte de RLS; el módulo funciona igual.
+
+#### 6.3.2 Archivos nuevos/modificados en esta segunda revisión
+
+- **Nuevo:** `form_facturacion.html` — módulo de facturación.
+- `datos.html` — modales flotantes + botón Asignar Técnico + enlace Facturación.
+- `conexion.js` — apertura/cierre de modales, asignación de técnico, cierre con `Esc`/clic fuera.
+- `styles.css` — estilos de modales flotantes.
+
+> Recordatorio: tras estos cambios, vuelve a subir el proyecto a GitHub con `git add .`, `git commit -m "..."` y `git push origin main`. Vercel redepliega solo.

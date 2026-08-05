@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturación - Innova</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-fact {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .brand span {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        .navbar-fact nav {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .navbar-fact nav a {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .navbar-fact nav a:hover {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .contenedor-fact {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.75rem;
+        }
+
+        .card h3 {
+            margin: 0 0 1.25rem;
+            color: #1e293b;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.75rem;
+        }
+
+        .banner {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .banner-cargando { background: #eff6ff; color: #1d4ed8; }
+        .banner-error { background: #fef2f2; color: #b91c1c; }
+        .banner-advertencia { background: #fffbeb; color: #92400e; }
+        .banner-exito { background: #ecfdf5; color: #065f46; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .campo label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .campo select,
+        .campo input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+
+        .iva-row { display: flex; gap: 8px; }
+        .iva-row input { flex: 1; }
+
+        .info-pedido {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px 14px;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .totales {
+            margin: 1rem 0 1.25rem;
+            margin-left: auto;
+            max-width: 340px;
+        }
+
+        .fila-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .fila-total.total-grande {
+            border-top: 2px solid #e2e8f0;
+            margin-top: 6px;
+            padding-top: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #1e293b;
+        }
+
+        .btn-block { width: 100%; }
+
+        /* ======= Factura imprimible ======= */
+        .factura-imprimible { font-size: 0.9rem; color: #0f172a; }
+        .fac-encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1e293b;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+        .fac-empresa { font-size: 1.6rem; font-weight: 800; color: #1e3a8a; letter-spacing: 1px; }
+        .fac-sub { font-size: 0.8rem; color: #64748b; }
+        .fac-numero { text-align: right; }
+        .fac-titulo { font-size: 1.2rem; font-weight: 800; color: #1e3a8a; letter-spacing: 2px; }
+        .fac-cliente {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+        .fac-totales { margin-top: 12px; margin-left: auto; max-width: 300px; }
+        .fac-totales > div { display: flex; justify-content: space-between; padding: 4px 0; }
+        .fac-totales .fac-grande {
+            border-top: 2px solid #1e293b;
+            margin-top: 4px;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .fac-footer {
+            margin-top: 18px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+
+        /* ======= Impresión (solo factura) ======= */
+        @media print {
+            .navbar-fact, .contenedor-fact, .modal-flotante-header, .modal-flotante-footer {
+                display: none !important;
+            }
+            #overlay-factura.modal-overlay {
+                position: static !important;
+                display: block !important;
+                background: #fff !important;
+                padding: 0 !important;
+            }
+            #overlay-factura .modal-flotante {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <header class="navbar-fact">
+        <div class="brand">Innova <span>| Facturación</span></div>
+        <nav>
+            <a href="datos.html">Panel</a>
+            <a href="pedido.html">Pedidos</a>
+            <button id="btn-logout" class="btn-logout">Salir</button>
+        </nav>
+    </header>
+
+    <div class="contenedor-fact">
+
+        <!-- VERIFICACIÓN DE BASE DE DATOS -->
+        <div id="db-status" class="banner banner-cargando">
+            <span id="db-status-msg">Verificando conexión con la base de datos...</span>
+        </div>
+
+        <!-- NUEVA FACTURA -->
+        <section class="card">
+            <h3>Nueva Factura</h3>
+            <div class="grid-2">
+                <div class="campo">
+                    <label for="fact-pedido">Pedido a facturar</label>
+                    <select id="fact-pedido" onchange="cargarDetallePedido()">
+                        <option value="">Cargando pedidos...</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="fact-iva">IVA (%)</label>
+                    <div class="iva-row">
+                        <input type="number" id="fact-iva" min="0" max="100" step="0.01" value="16">
+                        <button type="button" class="btn btn-secundario btn-sm" onclick="document.getElementById('fact-iva').value='0'; recalcularTotales();">Exento</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fact-detalle-info" class="info-pedido">Selecciona un pedido para cargar sus productos.</div>
+
+            <div style="overflow-x:auto;">
+                <table class="tabla" id="tabla-items">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Producto</th>
+                            <th scope="col">Cantidad</th>
+                            <th scope="col">Precio</th>
+                            <th scope="col">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-items-factura">
+                        <tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Selecciona un pedido arriba.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="totales">
+                <div class="fila-total"><span>Subtotal</span><span id="total-subtotal">$0.00</span></div>
+                <div class="fila-total"><span>IVA (<span id="lbl-iva">16</span>%)</span><span id="total-iva">$0.00</span></div>
+                <div class="fila-total total-grande"><span>Total</span><span id="total-factura">$0.00</span></div>
+            </div>
+
+            <button id="btn-emitir" class="btn btn-primario btn-block" onclick="emitirFactura()">Emitir Factura</button>
+        </section>
+
+        <!-- LISTADO DE FACTURAS -->
+        <section class="card">
+            <h3>Facturas Emitidas</h3>
+            <div style="overflow-x:auto;">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nº</th>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col" class="acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-facturas">
+                        <tr><td colspan="6" style="text-align:center; padding:16px; color:#64748b;">Cargando facturas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL VER / IMPRIMIR FACTURA -->
+    <div id="overlay-factura" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-factura">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-factura">Factura</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalFactura()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body" id="contenido-factura-imprimir"></div>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-secundario" onclick="cerrarModalFactura()">Cerrar</button>
+                <button class="btn btn-primario" onclick="window.print()">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="conexion.js"></script>
+    <script>
+        // ============================================
+        // ACCESO: SOLO ADMINISTRADORES
+        // ============================================
+        document.addEventListener("DOMContentLoaded", async () => {
+            const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
+
+            if (rol !== "admin") {
+                alert("Acceso denegado. Solo administradores.");
+                window.location.href = "portal-cliente.html";
+                return;
+            }
+
+            await verificarBaseDatos();
+            await cargarPedidosDisponibles();
+            await cargarListaFacturas();
+        });
+
+        document.getElementById("btn-logout").addEventListener("click", () => {
+            localStorage.removeItem("usuarioLogueado");
+            localStorage.removeItem("userRole");
+            window.location.href = "index.html";
+        });
+
+        // ============================================
+        // VERIFICACIÓN DE BASE DE DATOS
+        // ============================================
+        async function verificarBaseDatos() {
+            const banner = document.getElementById("db-status");
+            const msg = document.getElementById("db-status-msg");
+
+            const { error: errPed } = await supabaseClient.from("pedidos").select("id").limit(1);
+            const { error: errFac } = await supabaseClient.from("facturas").select("id").limit(1);
+            const { error: errDet } = await supabaseClient.from("factura_detalles").select("id").limit(1);
+
+            if (errPed) {
+                banner.className = "banner banner-error";
+                msg.textContent = "No se pudo conectar con Supabase: " + errPed.message;
+                return;
+            }
+
+            if (errFac || errDet) {
+                banner.className = "banner banner-advertencia";
+                msg.innerHTML = "La base de datos responde, pero faltan las tablas <b>facturas</b> o <b>factura_detalles</b>. " +
+                    "Ejecuta el script SQL de creación indicado en el informe (INFORME.md) dentro del Editor SQL de Supabase.";
+                return;
+            }
+
+            banner.className = "banner banner-exito";
+            msg.textContent = "Conexión y tablas de facturación verificadas correctamente.";
+        }
+
+        // ============================================
+        // CARGA DE PEDIDOS Y DETALLE
+        // ============================================
+        let pedidosDisponibles = [];
+        let itemsPedidoSeleccionado = [];
+
+        async function cargarPedidosDisponibles() {
+            const select = document.getElementById("fact-pedido");
+
+            const { data, error } = await supabaseClient
+                .from("pedidos")
+                .select("id, cliente_nombre, cliente_identificacion")
+                .order("id", { ascending: false })
+                .limit(100);
+
+            if (error) {
+                select.innerHTML = '<option value="">Error al cargar pedidos</option>';
+                showToast("Error al cargar pedidos: " + error.message, "error");
+                return;
+            }
+
+            pedidosDisponibles = data || [];
+
+            select.innerHTML = pedidosDisponibles.length
+                ? '<option value="">Selecciona un pedido</option>' + pedidosDisponibles.map(p =>
+                    `<option value="${p.id}">#${p.id} - ${p.cliente_nombre}</option>`).join("")
+                : '<option value="">No hay pedidos disponibles</option>';
+        }
+
+        async function cargarDetallePedido() {
+            const select = document.getElementById("fact-pedido");
+            const tbody = document.getElementById("cuerpo-items-factura");
+            const info = document.getElementById("fact-detalle-info");
+            const pedidoId = parseInt(select.value);
+
+            itemsPedidoSeleccionado = [];
+
+            if (!pedidoId) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Selecciona un pedido arriba.</td></tr>';
+                info.className = "info-pedido";
+                info.textContent = "Selecciona un pedido para cargar sus productos.";
+                recalcularTotales();
+                return;
+            }
+
+            const pedido = pedidosDisponibles.find(p => p.id === pedidoId);
+
+            // Evitar facturar un pedido ya facturado
+            const { data: existente } = await supabaseClient
+                .from("facturas")
+                .select("numero_factura")
+                .eq("pedido_id", pedidoId)
+                .limit(1);
+
+            if (existente && existente.length > 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#b91c1c;">⚠️ Este pedido ya fue facturado.</td></tr>';
+                info.className = "info-pedido";
+                info.innerHTML = `Este pedido ya fue facturado con el Nº <b>${existente[0].numero_factura}</b>. No se puede duplicar.`;
+                recalcularTotales();
+                return;
+            }
+
+            const { data: detalle, error } = await supabaseClient
+                .from("detalle_pedidos")
+                .select("id, producto_id, cantidad, precio_unitario, productos(nombre)")
+                .eq("pedido_id", pedidoId);
+
+            if (error) {
+                showToast("Error al cargar el detalle: " + error.message, "error");
+                return;
+            }
+
+            if (!detalle || detalle.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Este pedido no tiene productos registrados.</td></tr>';
+                info.textContent = `Pedido #${pedidoId} — ${pedido?.cliente_nombre || 'Cliente'} (sin productos).`;
+                recalcularTotales();
+                return;
+            }
+
+            itemsPedidoSeleccionado = detalle;
+
+            tbody.innerHTML = detalle.map((d, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${d.productos?.nombre || 'Producto'}</td>
+                    <td>${d.cantidad}</td>
+                    <td>$${Number(d.precio_unitario).toFixed(2)}</td>
+                    <td>$${(d.cantidad * d.precio_unitario).toFixed(2)}</td>
+                </tr>
+            `).join("");
+
+            info.className = "info-pedido";
+            info.textContent = `Pedido #${pedidoId} — ${pedido?.cliente_nombre || 'Cliente'} — ${detalle.length} producto(s).`;
+            recalcularTotales();
+        }
+
+        // ============================================
+        // CÁLCULO DE TOTALES
+        // ============================================
+        function recalcularTotales() {
+            const ivaPct = parseFloat(document.getElementById("fact-iva").value) || 0;
+            const subtotal = itemsPedidoSeleccionado.reduce((acc, d) => acc + (d.cantidad * d.precio_unitario), 0);
+            const iva = subtotal * (ivaPct / 100);
+            const total = subtotal + iva;
+
+            document.getElementById("lbl-iva").textContent = ivaPct;
+            document.getElementById("total-subtotal").textContent = "$" + subtotal.toFixed(2);
+            document.getElementById("total-iva").textContent = "$" + iva.toFixed(2);
+            document.getElementById("total-factura").textContent = "$" + total.toFixed(2);
+        }
+
+        document.getElementById("fact-iva").addEventListener("input", recalcularTotales);
+
+        // ============================================
+        // EMITIR FACTURA
+        // ============================================
+        async function generarNumeroFactura() {
+            const anio = new Date().getFullYear();
+            const { data, error } = await supabaseClient
+                .from("facturas")
+                .select("numero_factura");
+
+            if (error) throw error;
+
+            let max = 0;
+            (data || []).forEach(f => {
+                const m = (f.numero_factura || "").match(/(\d+)$/);
+                if (m) max = Math.max(max, parseInt(m[1], 10));
+            });
+
+            return `INV-${anio}-${String(max + 1).padStart(4, "0")}`;
+        }
+
+        async function emitirFactura() {
+            const pedidoId = parseInt(document.getElementById("fact-pedido").value);
+            const ivaPct = parseFloat(document.getElementById("fact-iva").value) || 0;
+
+            if (!pedidoId || itemsPedidoSeleccionado.length === 0) {
+                showToast("Selecciona un pedido con productos para facturar.", "error");
+                return;
+            }
+            if (ivaPct < 0 || ivaPct > 100) {
+                showToast("El porcentaje de IVA debe estar entre 0 y 100.", "error");
+                return;
+            }
+
+            const pedido = pedidosDisponibles.find(p => p.id === pedidoId);
+
+            // Verificación previa: evitar duplicados
+            const { data: existente } = await supabaseClient
+                .from("facturas")
+                .select("id")
+                .eq("pedido_id", pedidoId)
+                .limit(1);
+
+            if (existente && existente.length > 0) {
+                showToast("Este pedido ya fue facturado.", "error");
+                return;
+            }
+
+            const subtotal = itemsPedidoSeleccionado.reduce((a, d) => a + (d.cantidad * d.precio_unitario), 0);
+            const impuesto = subtotal * (ivaPct / 100);
+            const total = subtotal + impuesto;
+            let numero;
+
+            try {
+                numero = await generarNumeroFactura();
+            } catch (err) {
+                showToast("No se pudo generar el número de factura: " + err.message, "error");
+                return;
+            }
+
+            const btn = document.getElementById("btn-emitir");
+            btn.disabled = true;
+            showLoader(true);
+
+            try {
+                const { data: factura, error: errFac } = await supabaseClient
+                    .from("facturas")
+                    .insert([{
+                        numero_factura: numero,
+                        pedido_id: pedidoId,
+                        cliente_nombre: pedido?.cliente_nombre || "Cliente",
+                        cliente_identificacion: pedido?.cliente_identificacion || null,
+                        subtotal: subtotal,
+                        impuesto: impuesto,
+                        total: total,
+                        iva_porcentaje: ivaPct,
+                        estado: "emitida"
+                    }])
+                    .select()
+                    .single();
+
+                if (errFac) throw errFac;
+
+                const detalles = itemsPedidoSeleccionado.map(d => ({
+                    factura_id: factura.id,
+                    producto_id: d.producto_id,
+                    descripcion: d.productos?.nombre || "Producto",
+                    cantidad: d.cantidad,
+                    precio_unitario: d.precio_unitario,
+                    subtotal: d.cantidad * d.precio_unitario
+                }));
+
+                const { error: errDet } = await supabaseClient
+                    .from("factura_detalles")
+                    .insert(detalles);
+
+                if (errDet) throw errDet;
+
+                // Marcar el pedido como facturado (si la columna estado existe)
+                const { error: errEstado } = await supabaseClient
+                    .from("pedidos")
+                    .update({ estado: "facturado" })
+                    .eq("id", pedidoId);
+
+                if (errEstado) console.warn("No se pudo actualizar el estado del pedido:", errEstado.message);
+
+                showToast(`¡Factura ${numero} emitida correctamente!`, "success");
+
+                // Limpiar formulario y recargar
+                document.getElementById("fact-pedido").value = "";
+                itemsPedidoSeleccionado = [];
+                document.getElementById("cuerpo-items-factura").innerHTML =
+                    '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Selecciona un pedido arriba.</td></tr>';
+                document.getElementById("fact-detalle-info").textContent = "Selecciona un pedido para cargar sus productos.";
+                recalcularTotales();
+                await cargarListaFacturas();
+                await cargarPedidosDisponibles();
+            } catch (err) {
+                console.error("Error al emitir factura:", err);
+                showToast("Error al emitir factura: " + err.message, "error");
+            } finally {
+                btn.disabled = false;
+                showLoader(false);
+            }
+        }
+
+        // ============================================
+        // LISTADO, VER E IMPRIMIR, ELIMINAR
+        // ============================================
+        async function cargarListaFacturas() {
+            const tbody = document.getElementById("cuerpo-facturas");
+
+            const { data: facturas, error } = await supabaseClient
+                .from("facturas")
+                .select("id, numero_factura, cliente_nombre, fecha_emision, total, estado")
+                .order("id", { ascending: false })
+                .limit(50);
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:16px; color:#b91c1c;">Error al cargar facturas: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!facturas || facturas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#64748b;">Aún no hay facturas emitidas.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = facturas.map(f => `
+                <tr>
+                    <td><strong>${f.numero_factura}</strong></td>
+                    <td>${f.cliente_nombre || "N/A"}</td>
+                    <td>${f.fecha_emision ? new Date(f.fecha_emision).toLocaleDateString() : "N/A"}</td>
+                    <td>$${Number(f.total).toFixed(2)}</td>
+                    <td><span class="badge">${f.estado || "emitida"}</span></td>
+                    <td class="acciones">
+                        <button class="btn btn-secundario btn-sm" onclick="verFactura(${f.id})">Ver / Imprimir</button>
+                        <button class="btn btn-exito btn-sm" onclick="eliminarFactura(${f.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        async function verFactura(facturaId) {
+            const overlay = document.getElementById("overlay-factura");
+            const contenedor = document.getElementById("contenido-factura-imprimir");
+
+            const { data: factura, error: errFac } = await supabaseClient
+                .from("facturas")
+                .select("*")
+                .eq("id", facturaId)
+                .single();
+
+            if (errFac) {
+                showToast("Error al cargar la factura: " + errFac.message, "error");
+                return;
+            }
+
+            const { data: detalles, error: errDet } = await supabaseClient
+                .from("factura_detalles")
+                .select("descripcion, cantidad, precio_unitario, subtotal")
+                .eq("factura_id", facturaId);
+
+            if (errDet) {
+                showToast("Error al cargar el detalle: " + errDet.message, "error");
+                return;
+            }
+
+            const filas = (detalles || []).map((d, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${d.descripcion || "Producto"}</td>
+                    <td>${d.cantidad}</td>
+                    <td>$${Number(d.precio_unitario).toFixed(2)}</td>
+                    <td>$${Number(d.subtotal).toFixed(2)}</td>
+                </tr>
+            `).join("");
+
+            contenedor.innerHTML = `
+                <div class="factura-imprimible">
+                    <div class="fac-encabezado">
+                        <div>
+                            <div class="fac-empresa">INNOVA</div>
+                            <div class="fac-sub">Sistemas y Soluciones Tecnológicas</div>
+                            <div class="fac-sub">RIF: J-00000000-0 · Guayana, Venezuela</div>
+                        </div>
+                        <div class="fac-numero">
+                            <div class="fac-titulo">FACTURA</div>
+                            <div>Nº ${factura.numero_factura}</div>
+                            <div>${factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString() : "N/A"}</div>
+                        </div>
+                    </div>
+                    <div class="fac-cliente">
+                        <div><strong>Cliente:</strong> ${factura.cliente_nombre || "N/A"}</div>
+                        <div><strong>Identificación:</strong> ${factura.cliente_identificacion || "N/A"}</div>
+                        <div><strong>Pedido:</strong> #${factura.pedido_id || "N/A"}</div>
+                    </div>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col">Cant.</th>
+                                <th scope="col">Precio Unit.</th>
+                                <th scope="col">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filas}</tbody>
+                    </table>
+                    <div class="fac-totales">
+                        <div><span>Subtotal</span><span>$${Number(factura.subtotal).toFixed(2)}</span></div>
+                        <div><span>IVA (${factura.iva_porcentaje || 0}%)</span><span>$${Number(factura.impuesto).toFixed(2)}</span></div>
+                        <div class="fac-grande"><span>Total</span><span>$${Number(factura.total).toFixed(2)}</span></div>
+                    </div>
+                    <div class="fac-footer">Gracias por su compra. Factura generada automáticamente por el sistema Innova.</div>
+                </div>
+            `;
+
+            overlay.classList.add("mostrar");
+        }
+
+        function cerrarModalFactura() {
+            document.getElementById("overlay-factura").classList.remove("mostrar");
+        }
+
+        async function eliminarFactura(facturaId) {
+            if (!confirm("¿Eliminar esta factura?")) return;
+
+            const { error } = await supabaseClient
+                .from("facturas")
+                .delete()
+                .eq("id", facturaId);
+
+            if (error) {
+                showToast("Error al eliminar la factura: " + error.message, "error");
+                return;
+            }
+
+            showToast("Factura eliminada correctamente.", "success");
+            cargarListaFacturas();
+        }
+    </script>
+</body>
+</html>

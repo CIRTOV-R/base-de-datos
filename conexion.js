@@ -293,7 +293,13 @@ async function cargarInstalaciones() {
             <tr>
                 <td>#${i.id}</td>
                 <td>Pedido #${i.pedidos?.id || 'N/A'} <br><small style="color: #64748b;">${i.pedidos?.cliente_nombre || ''}</small></td>
-                <td><strong>${i.tecnicos?.nombre_completo || 'Sin asignar'}</strong></td>
+                <td>
+                    <strong>${i.tecnicos?.nombre_completo || 'Sin asignar'}</strong>
+                    <br>
+                    <button onclick="abrirModalAsignarTecnico(${i.id})" class="btn btn-secundario btn-sm" style="margin-top:6px;">
+                        Asignar Técnico
+                    </button>
+                </td>
                 <td>${i.productos?.nombre || 'Dispositivo genérico'}</td>
                 <td><span style="font-weight: bold; color: #2563eb;">${i.cantidad_instalada} u.</span></td>
                 <td>${i.fecha_instalacion || 'N/A'}</td>
@@ -458,12 +464,12 @@ function getPrimaryKeyField(tableName) {
 }
 
 async function abrirModalInstalacion() {
-    const panel = document.getElementById("panel-instalacion");
+    const overlay = document.getElementById("overlay-instalacion");
     const selectTecnico = document.getElementById("inst-select-tecnico");
     const selectProducto = document.getElementById("inst-select-producto");
     
-    if (!panel) return;
-    panel.style.display = "block";
+    if (!overlay) return;
+    overlay.classList.add("mostrar");
 
     // Cargar técnicos desde la base de datos
     const { data: tecnicos } = await supabaseClient.from("tecnicos").select("id, nombre_completo").order("nombre_completo");
@@ -479,8 +485,80 @@ async function abrirModalInstalacion() {
 }
 
 function cerrarModalInstalacion() {
-    const panel = document.getElementById("panel-instalacion");
-    if (panel) panel.style.display = "none";
+    const overlay = document.getElementById("overlay-instalacion");
+    if (overlay) overlay.classList.remove("mostrar");
+}
+
+// ==========================================
+// ASIGNAR / REASIGNAR TÉCNICO A UNA INSTALACIÓN
+// ==========================================
+async function abrirModalAsignarTecnico(instalacionId) {
+    const overlay = document.getElementById("overlay-asignar-tecnico");
+    const selectTecnico = document.getElementById("tecnico-select-reasignar");
+    const infoEl = document.getElementById("tecnico-info-instalacion");
+    if (!overlay) return;
+
+    document.getElementById("tecnico-instalacion-id").value = instalacionId;
+    overlay.classList.add("mostrar");
+
+    const [instRes, tecRes] = await Promise.all([
+        supabaseClient
+            .from("instalaciones")
+            .select("id, pedidos(cliente_nombre), tecnicos(nombre_completo), productos(nombre), cantidad_instalada")
+            .eq("id", instalacionId)
+            .single(),
+        supabaseClient.from("tecnicos").select("id, nombre_completo").order("nombre_completo")
+    ]);
+
+    if (instRes.error) {
+        showToast("Error al cargar la instalación: " + instRes.error.message, "error");
+        return;
+    }
+
+    const inst = instRes.data;
+    const tecnicos = tecRes.data || [];
+
+    if (infoEl) {
+        const cliente = inst.pedidos?.cliente_nombre || 'N/A';
+        const producto = inst.productos?.nombre || 'N/A';
+        const cantidad = inst.cantidad_instalada || 0;
+        infoEl.textContent = `Instalación #${inst.id} — Cliente: ${cliente} | Producto: ${producto} (${cantidad} u.)`;
+    }
+
+    selectTecnico.innerHTML = tecnicos.length > 0
+        ? tecnicos.map(t => `<option value="${t.id}" ${t.id === inst.tecnico_id ? 'selected' : ''}>${t.nombre_completo}</option>`).join('')
+        : `<option value="">No hay técnicos registrados</option>`;
+}
+
+function cerrarModalAsignarTecnico() {
+    const overlay = document.getElementById("overlay-asignar-tecnico");
+    if (overlay) overlay.classList.remove("mostrar");
+}
+
+async function guardarTecnicoInstalacion() {
+    const instalacionId = parseInt(document.getElementById("tecnico-instalacion-id").value);
+    const tecnicoId = parseInt(document.getElementById("tecnico-select-reasignar").value);
+
+    if (!instalacionId || !tecnicoId) {
+        showToast("Selecciona un técnico válido.", "error");
+        return;
+    }
+
+    showLoader(true);
+    const { error } = await supabaseClient
+        .from("instalaciones")
+        .update({ tecnico_id: tecnicoId })
+        .eq("id", instalacionId);
+    showLoader(false);
+
+    if (error) {
+        showToast("Error al asignar técnico: " + error.message, "error");
+        return;
+    }
+
+    showToast("¡Técnico asignado correctamente!", "success");
+    cerrarModalAsignarTecnico();
+    cargarInstalaciones();
 }
 
 async function guardarInstalacion() {
@@ -642,13 +720,13 @@ function agregarFilaProducto() {
 // CONTROL DE NUEVOS PRODUCTOS
 // ==========================================
 function abrirModalNuevoProducto() {
-    const panel = document.getElementById("panel-nuevo-producto");
-    if (panel) panel.style.display = "block";
+    const overlay = document.getElementById("overlay-nuevo-producto");
+    if (overlay) overlay.classList.add("mostrar");
 }
 
 function cerrarModalNuevoProducto() {
-    const panel = document.getElementById("panel-nuevo-producto");
-    if (panel) panel.style.display = "none";
+    const overlay = document.getElementById("overlay-nuevo-producto");
+    if (overlay) overlay.classList.remove("mostrar");
 }
 
 async function guardarNuevoProducto() {
@@ -688,11 +766,11 @@ async function guardarNuevoProducto() {
 // CONTROL DE COMPRAS Y STOCK
 // ==========================================
 async function abrirModalCompra() {
-    const panel = document.getElementById("panel-compra");
+    const overlay = document.getElementById("overlay-compra");
     const select = document.getElementById("select-producto-compra");
     
-    if (!panel || !select) return;
-    panel.style.display = "block";
+    if (!overlay || !select) return;
+    overlay.classList.add("mostrar");
     
     const { data: productos, error } = await supabaseClient.from("productos").select("id, nombre, stock").order("nombre");
     
@@ -707,8 +785,8 @@ async function abrirModalCompra() {
 }
 
 function cerrarModalCompra() {
-    const panel = document.getElementById("panel-compra");
-    if (panel) panel.style.display = "none";
+    const overlay = document.getElementById("overlay-compra");
+    if (overlay) overlay.classList.remove("mostrar");
 }
 
 async function guardarCompraStock() {
@@ -902,3 +980,18 @@ async function cambiarRolUsuario(id, nuevoRol) {
     showToast("Rol actualizado correctamente.", "success");
     cargarUsuarios();
 }
+
+// ==========================================
+// CIERRE DE MODALES FLOTANTES (clic en el fondo o tecla Esc)
+// ==========================================
+document.addEventListener("click", (e) => {
+    if (e.target.classList && e.target.classList.contains("modal-overlay")) {
+        e.target.classList.remove("mostrar");
+    }
+});
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        document.querySelectorAll(".modal-overlay.mostrar").forEach(m => m.classList.remove("mostrar"));
+    }
+});
