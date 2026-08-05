@@ -1,9 +1,9 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Clientes - Innova</title>
+    <title>Portal Básico - Innova</title>
     <style>
         * {
             box-sizing: border-box;
@@ -27,6 +27,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         header h1 {
@@ -51,7 +53,7 @@
 
         main {
             flex: 1;
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
             margin: 40px auto;
             padding: 0 20px;
@@ -60,7 +62,7 @@
             gap: 30px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             main {
                 grid-template-columns: 1fr;
             }
@@ -79,6 +81,12 @@
             font-size: 18px;
             border-bottom: 2px solid #f1f5f9;
             padding-bottom: 10px;
+        }
+
+        .card h4 {
+            margin: 24px 0 12px;
+            color: #475569;
+            font-size: 15px;
         }
 
         .form-group {
@@ -114,7 +122,14 @@
 
         .form-group textarea {
             resize: vertical;
-            height: 90px;
+            height: 70px;
+        }
+
+        .fila-prod {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
         }
 
         .btn-submit {
@@ -133,56 +148,159 @@
         .btn-submit:hover {
             background-color: #1d4ed8;
         }
+
+        .btn-submit:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .btn-agregar {
+            background: #e0e7ff;
+            color: #3730a3;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .btn-del {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid #e5e7eb;
+            margin: 18px 0;
+        }
+
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .tabla th,
+        .tabla td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .tabla th {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .tabla td {
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 id="welcome-msg">Portal de Clientes</h1>
+        <h1 id="welcome-msg">Portal de Gestión</h1>
         <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
     </header>
 
     <main>
-        <!-- Formulario de Pedidos -->
+        <!-- GESTIÓN DE PEDIDOS -->
         <div class="card">
-            <h3>Realizar un Pedido</h3>
-            <form id="form-pedido">
+            <h3>Gestión de Pedidos</h3>
+            <form id="form-pedido-basico">
                 <div class="form-group">
-                    <label for="producto">Seleccionar Producto o Servicio</label>
-                    <select id="producto" required>
-                        <option value="" disabled selected>Cargando productos disponibles...</option>
-                    </select>
+                    <label for="ped-basico-nombre">Nombre del Cliente</label>
+                    <input type="text" id="ped-basico-nombre" placeholder="Nombre y apellido" required>
                 </div>
                 <div class="form-group">
-                    <label for="cantidad">Cantidad</label>
-                    <input type="number" id="cantidad" min="1" value="1" required>
+                    <label for="ped-basico-identificacion">Identificación (Cédula o RIF)</label>
+                    <input type="text" id="ped-basico-identificacion" placeholder="Cédula o Identificación" required>
                 </div>
-                <div class="form-group">
-                    <label for="detalles-pedido">Detalles adicionales</label>
-                    <textarea id="detalles-pedido" placeholder="Especificaciones de tu pedido..."></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Enviar Pedido</button>
+
+                <hr>
+                <label style="display:block; margin-bottom:8px; font-weight:700; font-size:13px; color:#1e3a8a;">Productos Requeridos</label>
+                <div id="contenedor-productos-basico"></div>
+                <button type="button" id="btn-agregar-linea-basico" class="btn-agregar">+ Añadir otro producto</button>
+
+                <button type="submit" class="btn-submit">Registrar Pedido</button>
             </form>
+
+            <h4>Pedidos recientes</h4>
+            <div style="overflow-x:auto;">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Identificación</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pedidos">
+                        <tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Formulario de Instalación -->
+        <!-- ASIGNACIÓN DE TÉCNICOS -->
         <div class="card">
-            <h3>Solicitar Instalación</h3>
-            <form id="form-instalacion">
+            <h3>Asignación de Técnicos</h3>
+            <form id="form-asignacion-basico">
                 <div class="form-group">
-                    <label for="equipo">Tipo de Equipo / Sistema</label>
-                    <input type="text" id="equipo" required placeholder="Ej. Red de oficina / Servidor">
+                    <label for="asig-pedido">Pedido</label>
+                    <select id="asig-pedido" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="fecha-pref">Fecha Preferida</label>
-                    <input type="date" id="fecha-pref" required>
+                    <label for="asig-tecnico">Técnico</label>
+                    <select id="asig-tecnico" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="detalles-inst">Ubicación o Notas</label>
-                    <textarea id="detalles-inst" placeholder="Dirección o instrucciones..."></textarea>
+                    <label for="asig-producto">Producto a instalar</label>
+                    <select id="asig-producto" required></select>
                 </div>
-                <button type="submit" class="btn-submit">Solicitar Instalación</button>
+                <div class="form-group">
+                    <label for="asig-cantidad">Cantidad</label>
+                    <input type="number" id="asig-cantidad" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="asig-fecha">Fecha de instalación</label>
+                    <input type="date" id="asig-fecha">
+                </div>
+                <div class="form-group">
+                    <label for="asig-observaciones">Observaciones</label>
+                    <textarea id="asig-observaciones" placeholder="Notas o instrucciones..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Asignar Técnico</button>
             </form>
+
+            <h4>Asignaciones recientes</h4>
+            <div style="overflow-x:auto;">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Técnico</th>
+                            <th>Producto</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-asignaciones">
+                        <tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -191,74 +309,308 @@
     <script src="conexion.js"></script>
 
     <script>
-        // Función para cargar los productos desde Supabase al combobox
-        async function cargarProductosEnStock() {
-            const selectProducto = document.getElementById('producto');
-            
-            try {
-                const { data: productos, error } = await supabaseClient
-                    .from('productos') 
-                    .select('*');
-
-                if (error) throw error;
-
-                selectProducto.innerHTML = '<option value="" disabled selected>Selecciona un producto</option>';
-
-                if (productos && productos.length > 0) {
-                    productos.forEach(prod => {
-                        const option = document.createElement('option');
-                        option.value = prod.nombre; 
-                        option.textContent = `${prod.nombre} (Disponibles: ${prod.stock ?? 'Stock'})`; 
-                        selectProducto.appendChild(option);
-                    });
-                } else {
-                    selectProducto.innerHTML = '<option value="" disabled selected>No hay productos disponibles</option>';
-                }
-            } catch (err) {
-                console.error('Error al cargar productos:', err.message);
-                selectProducto.innerHTML = '<option value="" disabled selected>Error al cargar el stock</option>';
-            }
+        // ============================================
+        // ACCESO: SOLO USUARIOS BÁSICOS
+        // ============================================
+        function obtenerRolBasico() {
+            const r = (localStorage.getItem("userRole") || "").trim().toLowerCase();
+            if (r === "admin") return "admin";
+            if (r) return "basico";
+            return "";
         }
 
-        // Validación de seguridad y carga inicial al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            const rolActual = localStorage.getItem('userRole');
-            const usuarioData = JSON.parse(localStorage.getItem('usuarioLogueado'));
+        document.addEventListener("DOMContentLoaded", async () => {
+            const rol = obtenerRolBasico();
 
-            // Si no hay sesión o es administrador, bloquear el acceso y devolver al login
-            if (!rolActual || rolActual === 'admin') {
-                alert('Acceso no autorizado.');
-                window.location.href = 'index.html';
+            if (!rol) {
+                alert("No hay sesión activa. Inicia sesión.");
+                window.location.href = "index.html";
                 return;
             }
 
-            if (usuarioData && usuarioData.email) {
-                document.getElementById('welcome-msg').textContent = `Portal de Cliente: ${usuarioData.email}`;
+            if (rol === "admin") {
+                alert("Esta sección es para usuarios básicos.");
+                window.location.href = "datos.html";
+                return;
             }
 
-            // Cargar automáticamente los productos en el select
-            cargarProductosEnStock();
+            const usuarioData = JSON.parse(localStorage.getItem("usuarioLogueado") || "{}");
+            document.getElementById("welcome-msg").textContent = "Portal de Gestión: " + (usuarioData.email || "Usuario Básico");
+
+            await cargarProductosBasico();
+            agregarFilaBasico();
+            await cargarListaPedidos();
+            await cargarSelectsAsignacion();
+            await cargarListaAsignaciones();
         });
 
-        // Botón de cerrar sesión
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = 'index.html';
+        document.getElementById("btn-logout").addEventListener("click", () => {
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("usuarioLogueado");
+            window.location.href = "index.html";
         });
 
-        // Simulación de envío de formularios
-        document.getElementById('form-pedido').addEventListener('submit', (e) => {
+        // ============================================
+        // GESTIÓN DE PEDIDOS
+        // ============================================
+        let productosBasico = [];
+
+        async function cargarProductosBasico() {
+            const { data, error } = await supabaseClient
+                .from("productos")
+                .select("*")
+                .gt("stock", 0)
+                .order("nombre");
+            if (error) {
+                console.error("Error al cargar productos:", error);
+                return;
+            }
+            productosBasico = data || [];
+        }
+
+        function agregarFilaBasico() {
+            const contenedor = document.getElementById("contenedor-productos-basico");
+            if (!contenedor) return;
+
+            const div = document.createElement("div");
+            div.className = "fila-prod";
+            div.innerHTML = `
+                <select class="sel-prod-basico" required style="flex:2; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
+                    <option value="">Selecciona un producto</option>
+                    ${productosBasico.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock} - $${p.precio})</option>`).join("")}
+                </select>
+                <input type="number" class="cant-prod-basico" min="1" value="1" required style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
+                <button type="button" class="btn-del-basico" style="background:#ef4444; color:white; border:none; padding:10px 12px; border-radius:6px; cursor:pointer;">✕</button>
+            `;
+
+            div.querySelector(".btn-del-basico").addEventListener("click", () => {
+                if (document.querySelectorAll("#contenedor-productos-basico .fila-prod").length > 1) {
+                    div.remove();
+                } else {
+                    showToast("El pedido debe tener al menos un producto.", "error");
+                }
+            });
+
+            contenedor.appendChild(div);
+        }
+
+        document.getElementById("btn-agregar-linea-basico").addEventListener("click", agregarFilaBasico);
+
+        document.getElementById("form-pedido-basico").addEventListener("submit", async (e) => {
             e.preventDefault();
-            alert('¡Pedido registrado con éxito!');
+
+            const nombre = document.getElementById("ped-basico-nombre").value.trim();
+            const identificacion = document.getElementById("ped-basico-identificacion").value.trim();
+
+            const palabras = nombre.split(/\s+/).filter(Boolean);
+            if (palabras.length < 2) {
+                showToast("Ingresa nombre y apellido del cliente.", "error");
+                return;
+            }
+            if (identificacion.length < 4) {
+                showToast("Ingresa una identificación válida (mín. 4 caracteres).", "error");
+                return;
+            }
+
+            const filas = document.querySelectorAll("#contenedor-productos-basico .fila-prod");
+            const items = [];
+
+            for (const fila of filas) {
+                const prodId = parseInt(fila.querySelector(".sel-prod-basico").value);
+                const cantidad = parseInt(fila.querySelector(".cant-prod-basico").value);
+
+                if (!prodId || !cantidad || cantidad <= 0) continue;
+
+                const prod = productosBasico.find(p => p.id === prodId);
+                if (prod && cantidad > prod.stock) {
+                    showToast(`Stock insuficiente para ${prod.nombre}. Disponible: ${prod.stock}`, "error");
+                    return;
+                }
+                items.push({ prod, cantidad });
+            }
+
+            if (items.length === 0) {
+                showToast("Agrega al menos un producto válido al pedido.", "error");
+                return;
+            }
+
+            const boton = e.target.querySelector("button[type='submit']");
+            boton.disabled = true;
+
+            const { data: nuevoPedido, error: errPed } = await supabaseClient
+                .from("pedidos")
+                .insert([{ cliente_nombre: nombre, cliente_identificacion: identificacion }])
+                .select()
+                .single();
+
+            if (errPed) {
+                boton.disabled = false;
+                showToast("Error al crear pedido: " + errPed.message, "error");
+                return;
+            }
+
+            for (const item of items) {
+                const { error: errDet } = await supabaseClient.from("detalle_pedidos").insert([{
+                    pedido_id: nuevoPedido.id,
+                    producto_id: item.prod.id,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.prod.precio
+                }]);
+                if (errDet) console.error("Error en detalle del pedido:", errDet);
+
+                await supabaseClient
+                    .from("productos")
+                    .update({ stock: item.prod.stock - item.cantidad })
+                    .eq("id", item.prod.id);
+            }
+
+            boton.disabled = false;
+            showToast("¡Pedido registrado y stock actualizado!", "success");
+
             e.target.reset();
+            document.getElementById("contenedor-productos-basico").innerHTML = "";
+            await cargarProductosBasico();
+            agregarFilaBasico();
+            await cargarListaPedidos();
         });
 
-        document.getElementById('form-instalacion').addEventListener('submit', (e) => {
+        async function cargarListaPedidos() {
+            const tbody = document.getElementById("tabla-pedidos");
+            if (!tbody) return;
+
+            const { data: pedidos, error } = await supabaseClient
+                .from("pedidos")
+                .select("id, cliente_nombre, cliente_identificacion, created_at")
+                .order("id", { ascending: false })
+                .limit(10);
+
+            if (error) {
+                console.error("Error al cargar pedidos:", error);
+                return;
+            }
+
+            if (!pedidos || pedidos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">No hay pedidos registrados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pedidos.map(p => `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td>${p.cliente_nombre || "N/A"}</td>
+                    <td>${p.cliente_identificacion || "N/A"}</td>
+                    <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : "N/A"}</td>
+                </tr>
+            `).join("");
+        }
+
+        // ============================================
+        // ASIGNACIÓN DE TÉCNICOS
+        // ============================================
+        async function cargarSelectsAsignacion() {
+            const [pedRes, tecRes, prodRes] = await Promise.all([
+                supabaseClient.from("pedidos").select("id, cliente_nombre").order("id", { ascending: false }).limit(50),
+                supabaseClient.from("tecnicos").select("id, nombre_completo").order("nombre_completo"),
+                supabaseClient.from("productos").select("id, nombre").order("nombre")
+            ]);
+
+            const selPedido = document.getElementById("asig-pedido");
+            selPedido.innerHTML = (pedRes.data || []).length
+                ? pedRes.data.map(p => `<option value="${p.id}">#${p.id} - ${p.cliente_nombre}</option>`).join("")
+                : '<option value="">No hay pedidos disponibles</option>';
+
+            const selTecnico = document.getElementById("asig-tecnico");
+            selTecnico.innerHTML = (tecRes.data || []).length
+                ? tecRes.data.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join("")
+                : '<option value="">No hay técnicos registrados</option>';
+
+            const selProducto = document.getElementById("asig-producto");
+            selProducto.innerHTML = (prodRes.data || []).length
+                ? prodRes.data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join("")
+                : '<option value="">No hay productos disponibles</option>';
+        }
+
+        document.getElementById("form-asignacion-basico").addEventListener("submit", async (e) => {
             e.preventDefault();
-            alert('¡Solicitud de instalación enviada correctamente!');
+
+            const pedidoId = parseInt(document.getElementById("asig-pedido").value);
+            const tecnicoId = parseInt(document.getElementById("asig-tecnico").value);
+            const productoId = parseInt(document.getElementById("asig-producto").value);
+            const cantidad = parseInt(document.getElementById("asig-cantidad").value);
+            const fecha = document.getElementById("asig-fecha").value;
+            const observaciones = document.getElementById("asig-observaciones").value.trim();
+
+            if (!pedidoId || !tecnicoId || !productoId || !cantidad || cantidad <= 0) {
+                showToast("Completa pedido, técnico, producto y una cantidad válida.", "error");
+                return;
+            }
+
+            const datos = {
+                pedido_id: pedidoId,
+                tecnico_id: tecnicoId,
+                producto_id: productoId,
+                cantidad_instalada: cantidad,
+                observaciones: observaciones
+            };
+            if (fecha) datos.fecha_instalacion = fecha;
+
+            const boton = e.target.querySelector("button[type='submit']");
+            boton.disabled = true;
+
+            const { error } = await supabaseClient.from("instalaciones").insert([datos]);
+
+            boton.disabled = false;
+
+            if (error) {
+                showToast("Error al asignar técnico: " + error.message, "error");
+                return;
+            }
+
+            showToast("¡Técnico asignado con éxito!", "success");
+
             e.target.reset();
+            document.getElementById("asig-cantidad").value = "1";
+            await cargarSelectsAsignacion();
+            await cargarListaAsignaciones();
         });
+
+        async function cargarListaAsignaciones() {
+            const tbody = document.getElementById("tabla-asignaciones");
+            if (!tbody) return;
+
+            const { data: asignaciones, error } = await supabaseClient
+                .from("instalaciones")
+                .select(`
+                    id,
+                    fecha_instalacion,
+                    cantidad_instalada,
+                    pedidos ( cliente_nombre ),
+                    tecnicos ( nombre_completo ),
+                    productos ( nombre )
+                `)
+                .order("id", { ascending: false })
+                .limit(10);
+
+            if (error) {
+                console.error("Error al cargar asignaciones:", error);
+                return;
+            }
+
+            if (!asignaciones || asignaciones.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Sin asignaciones registradas.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = asignaciones.map(a => `
+                <tr>
+                    <td>#${a.id}</td>
+                    <td>${a.pedidos?.cliente_nombre || "N/A"}</td>
+                    <td>${a.tecnicos?.nombre_completo || "Sin asignar"}</td>
+                    <td>${a.productos?.nombre || "N/A"} x${a.cantidad_instalada}</td>
+                    <td>${a.fecha_instalacion || "N/A"}</td>
+                </tr>
+            `).join("");
+        }
     </script>
 
 </body>

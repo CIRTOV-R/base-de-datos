@@ -42,5 +42,15 @@
     </main>
 
     <script src="conexion.js"></script>
+    <script>
+      // Acceso mínimo: requiere una sesión activa (admin o básico)
+      document.addEventListener("DOMContentLoaded", () => {
+        const rol = (localStorage.getItem("userRole") || "").trim();
+        if (!rol) {
+          alert("No hay sesión activa. Inicia sesión.");
+          window.location.href = "index.html";
+        }
+      });
+    </script>
 </body>
 </html>

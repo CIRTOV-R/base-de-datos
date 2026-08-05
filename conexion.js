@@ -7,6 +7,23 @@ const SUPABASE_ANON_KEY = "sb_publishable_lXFlQOWjdoU3_HZUhQsO-Q_z6BnVyTT";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ==========================================
+// VALIDACIONES Y UTILIDADES DE USUARIO
+// ==========================================
+function validarEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "");
+}
+
+function normalizarRol(rol) {
+    const r = (rol || "").toString().trim().toLowerCase();
+    return r === "admin" ? "admin" : "basico";
+}
+
+function validarNombreCompleto(nombre) {
+    const palabras = (nombre || "").split(/\s+/).filter(Boolean);
+    return palabras.length >= 2;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const formLogin = document.getElementById("form-login");
@@ -21,12 +38,24 @@ if (formLogin) {
             return;
         }
 
+        const email = emailInput.value.trim();
+        const password = passInput.value;
+
+        if (!validarEmail(email)) {
+            showToast("Formato de correo inválido.", "error");
+            return;
+        }
+        if (!password) {
+            showToast("Ingresa tu contraseña.", "error");
+            return;
+        }
+
         showLoader(true);
         const { data: usuarios, error } = await supabaseClient
             .from("usuarios")
             .select("*")
-            .eq("email", emailInput.value.trim())
-            .eq("password", passInput.value);
+            .eq("email", email)
+            .limit(1);
 
         showLoader(false);
 
@@ -35,9 +64,10 @@ if (formLogin) {
             return; 
         }
 
-        if (usuarios && usuarios.length > 0) {
+        if (usuarios && usuarios.length > 0 && usuarios[0].password === password) {
             const usuarioEncontrado = usuarios[0];
-            const rolNormalizado = (usuarioEncontrado.rol || "").trim().toLowerCase();
+            const rolNormalizado = normalizarRol(usuarioEncontrado.rol);
+            usuarioEncontrado.rol = rolNormalizado;
 
             localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioEncontrado));
             localStorage.setItem("userRole", rolNormalizado);
@@ -62,16 +92,38 @@ if (formLogin) {
             const email = document.getElementById("reg-email").value.trim();
             const password = document.getElementById("reg-pass").value;
 
-            // 1. Validar que el nombre tenga al menos dos palabras (Nombre y Apellido) antes de enviar
-            const palabrasNombre = nombre.split(" ");
-            if (palabrasNombre.length < 2 || palabrasNombre[1] === "") {
+            // 1. Validación de campos antes de enviar
+            if (!validarNombreCompleto(nombre)) {
                 showToast("Por favor, introduce tu nombre y apellido completo.", "error");
-                return; // Detiene el registro si solo escribe "Carlos"
+                return;
+            }
+            if (!validarEmail(email)) {
+                showToast("Formato de correo inválido.", "error");
+                return;
+            }
+            if (password.length < 6) {
+                showToast("La contraseña debe tener al menos 6 caracteres.", "error");
+                return;
             }
 
-            // 2. Si pasa la validación, procede a enviar a Supabase
+            // 2. Evitar correos duplicados
             showLoader(true);
-            const { error } = await supabaseClient.from("usuarios").insert([{ nombre, email, password }]);
+            const { data: existente } = await supabaseClient
+                .from("usuarios")
+                .select("id")
+                .eq("email", email)
+                .limit(1);
+
+            if (existente && existente.length > 0) {
+                showLoader(false);
+                showToast("Ya existe una cuenta con ese correo.", "error");
+                return;
+            }
+
+            // 3. Los usuarios nuevos se crean siempre con rol "basico"
+            const { error } = await supabaseClient
+                .from("usuarios")
+                .insert([{ nombre, email, password, rol: "basico" }]);
             showLoader(false);
 
             if (error) { 
@@ -83,9 +135,64 @@ if (formLogin) {
         });
     }
 
-    // --- CARGA DE DATOS EN PANEL ---
+    // --- CARGA DE DATOS EN PANEL (solo si la sesión es admin) ---
     if (document.getElementById("cuerpo-tabla") || document.getElementById("cuerpo-productos") || document.getElementById("cuerpo-pedidos")) {
-        cargarTodo();
+        if (normalizarRol(localStorage.getItem("userRole")) === "admin") {
+            cargarTodo();
+            cargarUsuarios();
+        }
+    }
+
+    // --- CREACIÓN DE USUARIOS DESDE EL PANEL ADMIN ---
+    const formUsuarioAdmin = document.getElementById("form-usuario-admin");
+    if (formUsuarioAdmin) {
+        formUsuarioAdmin.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById("ua-nombre").value.trim();
+            const email = document.getElementById("ua-email").value.trim();
+            const password = document.getElementById("ua-pass").value;
+            const rol = document.getElementById("ua-rol").value;
+
+            if (!validarNombreCompleto(nombre)) {
+                showToast("Nombre y apellido requeridos.", "error");
+                return;
+            }
+            if (!validarEmail(email)) {
+                showToast("Formato de correo inválido.", "error");
+                return;
+            }
+            if (password.length < 6) {
+                showToast("La contraseña debe tener al menos 6 caracteres.", "error");
+                return;
+            }
+
+            showLoader(true);
+            const { data: existente } = await supabaseClient
+                .from("usuarios")
+                .select("id")
+                .eq("email", email)
+                .limit(1);
+
+            if (existente && existente.length > 0) {
+                showLoader(false);
+                showToast("Ese correo ya está registrado.", "error");
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from("usuarios")
+                .insert([{ nombre, email, password, rol }]);
+            showLoader(false);
+
+            if (error) {
+                showToast("Error al crear usuario: " + error.message, "error");
+                return;
+            }
+
+            showToast("¡Usuario creado correctamente!", "success");
+            formUsuarioAdmin.reset();
+            cargarUsuarios();
+        });
     }
 
     // --- INICIALIZAR VISTA DE NUEVO PEDIDO ---
@@ -249,7 +356,15 @@ async function cargarPedidos() {
         .select("*, detalle_pedidos(*, productos(nombre))")
         .order("id", { ascending: false });
     
-    if (error || !pedidos || pedidos.length === 0) {
+    if (error) {
+        showToast("Error al cargar pedidos: " + error.message, "error");
+        return;
+    }
+
+    const contador = document.getElementById("contador-pedidos");
+    if (contador) contador.textContent = (pedidos && pedidos.length) || 0;
+
+    if (!pedidos || pedidos.length === 0) {
         tabla.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #64748b;">📋 No hay pedidos registrados.</td></tr>`;
         return;
     }
@@ -258,13 +373,14 @@ async function cargarPedidos() {
         const items = ped.detalle_pedidos && ped.detalle_pedidos.length > 0 
             ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
             : 'Sin detalles';
+        const fecha = ped.created_at ? new Date(ped.created_at).toLocaleDateString() : 'N/A';
             
         return `
             <tr>
                 <td>#${ped.id}</td>
                 <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
                 <td>${items}</td>
-                <td>${new Date(ped.created_at).toLocaleDateString()}</td>
+                <td>${fecha}</td>
             </tr>
         `;
     }).join('');
@@ -728,4 +844,61 @@ function protegerPaginaAdmin() {
     }
 
     return true;
+}
+
+// ==========================================
+// GESTIÓN DE USUARIOS (SOLO ADMIN)
+// ==========================================
+async function cargarUsuarios() {
+    const tabla = document.getElementById("cuerpo-usuarios");
+    if (!tabla) return;
+
+    const { data: usuarios, error } = await supabaseClient
+        .from("usuarios")
+        .select("id, nombre, email, rol")
+        .order("id");
+
+    if (error) {
+        showToast("Error al cargar usuarios: " + error.message, "error");
+        return;
+    }
+
+    if (!usuarios || usuarios.length === 0) {
+        tabla.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">👥 No hay usuarios registrados.</td></tr>`;
+        return;
+    }
+
+    tabla.innerHTML = usuarios.map(u => {
+        const esAdmin = u.rol === "admin";
+        const boton = esAdmin
+            ? `<button onclick="cambiarRolUsuario(${u.id},'basico')" class="btn btn-secundario btn-sm">Hacer Básico</button>`
+            : `<button onclick="cambiarRolUsuario(${u.id},'admin')" class="btn btn-primario btn-sm">Hacer Admin</button>`;
+        return `
+            <tr>
+                <td>#${u.id}</td>
+                <td>${u.nombre || 'N/A'}</td>
+                <td>${u.email || 'N/A'}</td>
+                <td><span class="badge">${esAdmin ? 'Administrador' : 'Básico'}</span></td>
+                <td class="acciones">${boton}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function cambiarRolUsuario(id, nuevoRol) {
+    const etiqueta = nuevoRol === "admin" ? "Administrador" : "Básico";
+    if (!confirm(`¿Cambiar el rol de este usuario a ${etiqueta}?`)) return;
+
+    const { error } = await supabaseClient
+        .from("usuarios")
+        .update({ rol: nuevoRol })
+        .eq("id", id);
+
+    if (error) {
+        showToast("Error al cambiar rol: " + error.message, "error");
+        return;
+    }
+
+    showToast("Rol actualizado correctamente.", "success");
+    cargarUsuarios();
 }

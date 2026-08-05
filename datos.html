@@ -145,7 +145,55 @@
             </div>
         </section>
 
-        <!-- SECCIÓN 4: INVENTARIO -->
+        <!-- SECCIÓN 4: GESTIÓN DE USUARIOS -->
+        <section class="seccion" aria-labelledby="titulo-usuarios">
+            <div class="seccion-header">
+                <h3 id="titulo-usuarios">Gestión de Usuarios</h3>
+                <button onclick="cargarUsuarios()" class="btn btn-secundario btn-sm">
+                    Actualizar
+                </button>
+            </div>
+
+            <form id="form-usuario-admin" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;">
+                <div style="flex:2; min-width:180px;">
+                    <label style="font-size:12px; font-weight:600; color:#475569;">Nombre Completo:</label>
+                    <input type="text" id="ua-nombre" placeholder="Ej: María Pérez" required style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:6px;">
+                </div>
+                <div style="flex:2; min-width:180px;">
+                    <label style="font-size:12px; font-weight:600; color:#475569;">Correo:</label>
+                    <input type="email" id="ua-email" placeholder="correo@ejemplo.com" required style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:6px;">
+                </div>
+                <div style="flex:1; min-width:140px;">
+                    <label style="font-size:12px; font-weight:600; color:#475569;">Contraseña:</label>
+                    <input type="password" id="ua-pass" placeholder="Mín. 6 caracteres" required style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:6px;">
+                </div>
+                <div style="width:150px;">
+                    <label style="font-size:12px; font-weight:600; color:#475569;">Rol:</label>
+                    <select id="ua-rol" style="width:100%; padding:9px; border:1px solid #d1d5db; border-radius:6px;">
+                        <option value="basico">Básico</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primario btn-sm">Crear Usuario</button>
+            </form>
+
+            <div class="tabla-contenedor">
+                <table class="tabla" role="grid" aria-label="Tabla de usuarios">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Correo</th>
+                            <th scope="col">Rol</th>
+                            <th scope="col" class="acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-usuarios"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: INVENTARIO -->
         <section class="seccion" aria-labelledby="titulo-inventario">
             <div class="seccion-header">
                 <h3 id="titulo-inventario">Inventario de Productos</h3>
@@ -290,7 +338,7 @@
         window.location.href = "index.html";
       }
 
-      // Protección solo-admin y carga de datos
+      // Protección solo-admin (la carga de datos la hace conexion.js)
       document.addEventListener("DOMContentLoaded", () => {
         const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
         console.log("Rol en localStorage:", rol);
@@ -300,9 +348,6 @@
           window.location.href = "portal-cliente.html";
           return;
         }
-
-        // Si es admin, carga los datos del panel
-        cargarTodo();
       });
     </script>
 </body>
