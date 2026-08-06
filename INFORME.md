@@ -233,3 +233,35 @@ alter table public.pedidos add column if not exists usuario_email text;
 ### 7.3 Archivo modificado
 
 - `portal-cliente.html` — portal individual (mis pedidos + mis facturas), sin asignación de técnicos.
+
+---
+
+## 8. Cuarta revisión: aprobación/rechazo de facturas desde el panel admin
+
+Nuevo flujo de trabajo:
+
+1. **El cliente** emite su pedido desde `portal-cliente.html` (queda como `PENDIENTE`).
+2. **El admin** ve en **Pedidos Recientes** (panel `datos.html`) un botón **"Emitir Factura"** al lado de cada pedido pendiente.
+3. Al hacer clic se abre una **ventana flotante con la factura** (productos, cantidades, subtotal, IVA 16% y total) y los botones:
+   - **✓ Aprobar y Enviar al Cliente**: crea la factura en `facturas` + `factura_detalles`, marca el pedido como `aprobado` y **la factura aparece automáticamente en "Mis Facturas" del cliente** (se enlaza por el correo del pedido).
+   - **✕ Rechazar**: abre otra ventana donde el admin escribe una **observación** (mín. 10 caracteres). Al enviarla, el pedido queda `rechazado`, se guarda la observación y **el cliente la ve en su historial de pedidos** ("Motivo: ...").
+4. En `portal-cliente.html`, cada pedido muestra su estado (**PENDIENTE / APROBADO / RECHAZADO**) y, si fue rechazado, el motivo.
+
+### 8.1 Qué ejecutar en Supabase (obligatorio)
+
+```sql
+-- Estado y observación de rechazo por pedido
+alter table public.pedidos add column if not exists estado text default 'pendiente';
+alter table public.pedidos add column if not exists observacion_rechazo text;
+```
+
+> Los comandos son idempotentes (`if not exists`): si ya ejecutaste `estado` antes, no rompen nada.
+
+### 8.2 Archivos modificados
+
+- `datos.html` — botón "Emitir Factura" en cada pedido + modales de factura y de rechazo.
+- `conexion.js` — funciones `abrirModalFacturaAdmin`, `aprobarFacturaAdmin`, `abrirModalRechazoAdmin`, `rechazarPedidoAdmin`, `generarNumeroFacturaGlobal`; `cargarPedidos` ahora muestra estado y acciones.
+- `portal-cliente.html` — muestra el estado y la observación de rechazo en el historial.
+- `styles.css` — estilos de totales dentro del modal de factura.
+
+> Nota: los pedidos creados por el admin (sin `usuario_email`) pueden facturarse igual, pero la factura **no** aparecerá en ningún portal de cliente porque no hay correo vinculado.

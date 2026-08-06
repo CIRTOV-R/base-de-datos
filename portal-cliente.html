@@ -426,10 +426,11 @@
                             <th>Cliente</th>
                             <th>Productos</th>
                             <th>Fecha</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-pedidos-portal">
-                        <tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -674,14 +675,14 @@
                 if (/usuario_email/.test(error.message)) {
                     document.getElementById("aviso-usuario-email").hidden = false;
                 }
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px; color:#b91c1c;">Error al cargar: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px; color:#b91c1c;">Error al cargar: ${error.message}</td></tr>`;
                 return;
             }
 
             document.getElementById("aviso-usuario-email").hidden = true;
 
             if (!pedidos || pedidos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">Aún no tienes pedidos.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Aún no tienes pedidos.</td></tr>';
                 return;
             }
 
@@ -690,12 +691,24 @@
                     ? p.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
                     : 'Sin detalles';
                 const fecha = p.created_at ? new Date(p.created_at).toLocaleDateString() : "N/A";
+
+                const estado = p.estado || "pendiente";
+                const badgeEstado = estado === "aprobado"
+                    ? '<span class="badge" style="background:#ecfdf5; color:#059669;">APROBADO</span>'
+                    : estado === "rechazado"
+                        ? '<span class="badge" style="background:#fef2f2; color:#b91c1c;">RECHAZADO</span>'
+                        : '<span class="badge">PENDIENTE</span>';
+                const observacion = p.observacion_rechazo
+                    ? `<div style="font-size:12px; color:#b91c1c; margin-top:4px;">Motivo: ${p.observacion_rechazo}</div>`
+                    : "";
+
                 return `
                     <tr>
                         <td>#${p.id}</td>
                         <td>${p.cliente_nombre || "N/A"}</td>
                         <td>${items}</td>
                         <td>${fecha}</td>
+                        <td>${badgeEstado}${observacion}</td>
                     </tr>
                 `;
             }).join("");

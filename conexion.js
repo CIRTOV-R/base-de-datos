@@ -380,13 +380,26 @@ async function cargarPedidos() {
             ? ped.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
             : 'Sin detalles';
         const fecha = ped.created_at ? new Date(ped.created_at).toLocaleDateString() : 'N/A';
-            
+
+        const estado = (ped.estado || "pendiente");
+        const badgeEstado = estado === "aprobado"
+            ? '<span class="badge" style="background:#ecfdf5; color:#059669;">APROBADO</span>'
+            : estado === "rechazado"
+                ? '<span class="badge" style="background:#fef2f2; color:#b91c1c;">RECHAZADO</span>'
+                : '<span class="badge">PENDIENTE</span>';
+
+        const accionesHtml = (estado === "aprobado" || estado === "rechazado")
+            ? `<span style="font-size:12px; color:#64748b;">${estado === "aprobado" ? "Facturado ✓" : "Rechazado ✕"}</span>`
+            : `<button onclick="abrirModalFacturaAdmin(${ped.id})" class="btn btn-primario btn-sm">Emitir Factura</button>`;
+
         return `
             <tr>
                 <td>#${ped.id}</td>
                 <td><strong>${ped.cliente_nombre}</strong><br><small style="color:#64748b;">${ped.cliente_identificacion}</small></td>
                 <td>${items}</td>
                 <td>${fecha}</td>
+                <td>${badgeEstado}</td>
+                <td class="acciones">${accionesHtml}</td>
             </tr>
         `;
     }).join('');
@@ -995,3 +1008,240 @@ document.addEventListener("keydown", (e) => {
         document.querySelectorAll(".modal-overlay.mostrar").forEach(m => m.classList.remove("mostrar"));
     }
 });
+
+// ==========================================
+// EMITIR FACTURA DESDE PEDIDOS (ADMIN)
+// ==========================================
+let pedidoFacturaActual = null;
+let itemsFacturaActual = [];
+
+async function generarNumeroFacturaGlobal() {
+    const anio = new Date().getFullYear();
+    const { data, error } = await supabaseClient
+        .from("facturas")
+        .select("numero_factura");
+
+    if (error) throw error;
+
+    let max = 0;
+    (data || []).forEach(f => {
+        const m = (f.numero_factura || "").match(/(\d+)$/);
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+    });
+
+    return `INV-${anio}-${String(max + 1).padStart(4, "0")}`;
+}
+
+async function abrirModalFacturaAdmin(pedidoId) {
+    const overlay = document.getElementById("overlay-factura-admin");
+    if (!overlay) return;
+
+    // Si el pedido ya tiene factura, se avisa y no se abre
+    const { data: existente } = await supabaseClient
+        .from("facturas")
+        .select("numero_factura")
+        .eq("pedido_id", pedidoId)
+        .limit(1);
+
+    if (existente && existente.length > 0) {
+        showToast("Este pedido ya fue facturado (" + existente[0].numero_factura + ").", "error");
+        return;
+    }
+
+    showLoader(true);
+    const [pedRes, detRes] = await Promise.all([
+        supabaseClient.from("pedidos").select("*").eq("id", pedidoId).single(),
+        supabaseClient.from("detalle_pedidos").select("*, productos(nombre)").eq("pedido_id", pedidoId)
+    ]);
+    showLoader(false);
+
+    if (pedRes.error || detRes.error) {
+        showToast("Error al cargar el pedido: " + (pedRes.error?.message || detRes.error?.message), "error");
+        return;
+    }
+
+    const pedido = pedRes.data;
+    const detalle = detRes.data || [];
+
+    if (detalle.length === 0) {
+        showToast("El pedido no tiene productos para facturar.", "error");
+        return;
+    }
+
+    pedidoFacturaActual = pedido;
+    itemsFacturaActual = detalle;
+
+    const ivaPct = 16;
+    const subtotal = detalle.reduce((a, d) => a + (d.cantidad * d.precio_unitario), 0);
+    const impuesto = subtotal * (ivaPct / 100);
+    const total = subtotal + impuesto;
+
+    const filas = detalle.map((d, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${d.productos?.nombre || 'Producto'}</td>
+            <td>${d.cantidad}</td>
+            <td>$${Number(d.precio_unitario).toFixed(2)}</td>
+            <td>$${(d.cantidad * d.precio_unitario).toFixed(2)}</td>
+        </tr>
+    `).join("");
+
+    document.getElementById("cuerpo-factura-admin").innerHTML = `
+        <div style="margin-bottom:16px; font-size:14px; color:#475569;">
+            <div><strong style="color:#1e293b;">Cliente:</strong> ${pedido.cliente_nombre || 'N/A'}</div>
+            <div><strong style="color:#1e293b;">Identificación:</strong> ${pedido.cliente_identificacion || 'N/A'}</div>
+            <div><strong style="color:#1e293b;">Pedido:</strong> #${pedido.id}</div>
+            <div><strong style="color:#1e293b;">Correo del cliente:</strong> ${pedido.usuario_email || '— (no aparecerá en el portal del cliente)'}</div>
+        </div>
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Cant.</th>
+                    <th scope="col">Precio Unit.</th>
+                    <th scope="col">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+        </table>
+        <div class="totales-factura-admin">
+            <div><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+            <div><span>IVA (${ivaPct}%)</span><span>$${impuesto.toFixed(2)}</span></div>
+            <div><span>Total</span><span>$${total.toFixed(2)}</span></div>
+        </div>
+    `;
+
+    overlay.classList.add("mostrar");
+}
+
+function cerrarModalFacturaAdmin() {
+    const overlay = document.getElementById("overlay-factura-admin");
+    if (overlay) overlay.classList.remove("mostrar");
+    pedidoFacturaActual = null;
+    itemsFacturaActual = [];
+}
+
+async function aprobarFacturaAdmin() {
+    if (!pedidoFacturaActual) return;
+
+    const pedido = pedidoFacturaActual;
+
+    // Verificación final de duplicados
+    const { data: existente } = await supabaseClient
+        .from("facturas")
+        .select("id")
+        .eq("pedido_id", pedido.id)
+        .limit(1);
+
+    if (existente && existente.length > 0) {
+        showToast("Este pedido ya fue facturado.", "error");
+        cerrarModalFacturaAdmin();
+        return;
+    }
+
+    const ivaPct = 16;
+    const subtotal = itemsFacturaActual.reduce((a, d) => a + (d.cantidad * d.precio_unitario), 0);
+    const impuesto = subtotal * (ivaPct / 100);
+    const total = subtotal + impuesto;
+
+    let numero;
+    try {
+        numero = await generarNumeroFacturaGlobal();
+    } catch (err) {
+        showToast("No se pudo generar el número de factura: " + err.message, "error");
+        return;
+    }
+
+    showLoader(true);
+    try {
+        const { data: factura, error: errFac } = await supabaseClient
+            .from("facturas")
+            .insert([{
+                numero_factura: numero,
+                pedido_id: pedido.id,
+                cliente_nombre: pedido.cliente_nombre || "Cliente",
+                cliente_identificacion: pedido.cliente_identificacion || null,
+                subtotal: subtotal,
+                impuesto: impuesto,
+                total: total,
+                iva_porcentaje: ivaPct,
+                estado: "emitida"
+            }])
+            .select()
+            .single();
+
+        if (errFac) throw errFac;
+
+        const detalles = itemsFacturaActual.map(d => ({
+            factura_id: factura.id,
+            producto_id: d.producto_id,
+            descripcion: d.productos?.nombre || "Producto",
+            cantidad: d.cantidad,
+            precio_unitario: d.precio_unitario,
+            subtotal: d.cantidad * d.precio_unitario
+        }));
+
+        const { error: errDet } = await supabaseClient
+            .from("factura_detalles")
+            .insert(detalles);
+
+        if (errDet) throw errDet;
+
+        const { error: errEstado } = await supabaseClient
+            .from("pedidos")
+            .update({ estado: "aprobado" })
+            .eq("id", pedido.id);
+
+        if (errEstado) console.warn("No se pudo actualizar el estado del pedido:", errEstado.message);
+
+        showToast(`¡Factura ${numero} aprobada y enviada al cliente!`, "success");
+        cerrarModalFacturaAdmin();
+        cargarPedidos();
+    } catch (err) {
+        console.error("Error al aprobar la factura:", err);
+        showToast("Error al aprobar la factura: " + err.message, "error");
+    } finally {
+        showLoader(false);
+    }
+}
+
+function abrirModalRechazoAdmin() {
+    const overlay = document.getElementById("overlay-rechazo-admin");
+    if (!overlay) return;
+    document.getElementById("rechazo-observacion").value = "";
+    overlay.classList.add("mostrar");
+}
+
+function cerrarModalRechazoAdmin() {
+    const overlay = document.getElementById("overlay-rechazo-admin");
+    if (overlay) overlay.classList.remove("mostrar");
+}
+
+async function rechazarPedidoAdmin() {
+    if (!pedidoFacturaActual) return;
+
+    const observacion = document.getElementById("rechazo-observacion").value.trim();
+
+    if (observacion.length < 10) {
+        showToast("Escribe una observación (mín. 10 caracteres) para el cliente.", "error");
+        return;
+    }
+
+    showLoader(true);
+    const { error } = await supabaseClient
+        .from("pedidos")
+        .update({ estado: "rechazado", observacion_rechazo: observacion })
+        .eq("id", pedidoFacturaActual.id);
+    showLoader(false);
+
+    if (error) {
+        showToast("Error al rechazar el pedido: " + error.message, "error");
+        return;
+    }
+
+    showToast("Pedido rechazado. La observación se envió al cliente.", "success");
+    cerrarModalRechazoAdmin();
+    cerrarModalFacturaAdmin();
+    cargarPedidos();
+}

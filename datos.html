@@ -362,6 +362,42 @@
         </div>
     </div>
 
+    <!-- MODAL EMITIR FACTURA (desde pedidos recientes) -->
+    <div id="overlay-factura-admin" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-factura-admin">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-factura-admin">Emitir Factura del Pedido</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalFacturaAdmin()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body" id="cuerpo-factura-admin"></div>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-exito" onclick="aprobarFacturaAdmin()">✓ Aprobar y Enviar al Cliente</button>
+                <button class="btn btn-secundario" onclick="abrirModalRechazoAdmin()">✕ Rechazar</button>
+                <button class="btn btn-secundario" onclick="cerrarModalFacturaAdmin()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECHAZO DE PEDIDO (con observación) -->
+    <div id="overlay-rechazo-admin" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-rechazo">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-rechazo">Rechazar Pedido</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalRechazoAdmin()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body">
+                <div class="campo">
+                    <label for="rechazo-observacion">Observación para el cliente (motivo del rechazo):</label>
+                    <textarea id="rechazo-observacion" rows="4" placeholder="Ej: El producto solicitado no está disponible en este momento..."></textarea>
+                </div>
+            </div>
+            <div class="modal-flotante-footer">
+                <button class="btn btn-primario" onclick="rechazarPedidoAdmin()">Enviar Rechazo</button>
+                <button class="btn btn-secundario" onclick="cerrarModalRechazoAdmin()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="conexion.js"></script>
     <script>

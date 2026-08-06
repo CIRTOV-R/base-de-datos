@@ -801,6 +801,30 @@ tr:hover {
     }
 }
 
+/* Totales dentro del modal de factura del admin */
+.totales-factura-admin {
+    margin-top: 14px;
+    margin-left: auto;
+    max-width: 320px;
+}
+
+.totales-factura-admin > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+.totales-factura-admin > div:last-child {
+    border-top: 2px solid #e2e8f0;
+    margin-top: 6px;
+    padding-top: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
 @media (max-width: 640px) {
     .modal-flotante {
         max-height: 92vh;
