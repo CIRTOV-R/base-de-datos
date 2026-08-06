@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Básico - Innova</title>
+    <title>Mi Portal - Innova</title>
     <style>
         * {
             box-sizing: border-box;
@@ -58,14 +58,8 @@
             margin: 40px auto;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 30px;
-        }
-
-        @media (max-width: 900px) {
-            main {
-                grid-template-columns: 1fr;
-            }
         }
 
         .card {
@@ -87,6 +81,16 @@
             margin: 24px 0 12px;
             color: #475569;
             font-size: 15px;
+        }
+
+        .banner-aviso {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
         }
 
         .form-group {
@@ -118,11 +122,6 @@
         .form-group select:focus,
         .form-group textarea:focus {
             border-color: #2563eb;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            height: 70px;
         }
 
         .fila-prod {
@@ -176,6 +175,17 @@
             font-weight: bold;
         }
 
+        .btn-ver {
+            background: #eff6ff;
+            color: #2563eb;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
         hr {
             border: 0;
             border-top: 1px solid #e5e7eb;
@@ -204,99 +214,243 @@
         .tabla td {
             color: #1e293b;
         }
+
+        .badge {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ======= MODAL + FACTURA IMPRIMIBLE ======= */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.mostrar {
+            display: flex;
+        }
+
+        .modal-flotante {
+            background: #fff;
+            width: 100%;
+            max-width: 760px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        }
+
+        .modal-flotante-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            background: #fff;
+        }
+
+        .modal-flotante-header h4 {
+            margin: 0;
+            color: #1e293b;
+        }
+
+        .modal-cerrar {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-flotante-body {
+            padding: 22px;
+        }
+
+        .modal-flotante-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 22px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .factura-imprimible {
+            font-size: 0.9rem;
+            color: #0f172a;
+        }
+
+        .fac-encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1e293b;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .fac-empresa {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 1px;
+        }
+
+        .fac-sub {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .fac-numero {
+            text-align: right;
+        }
+
+        .fac-titulo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            letter-spacing: 2px;
+        }
+
+        .fac-cliente {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+
+        .fac-totales {
+            margin-top: 12px;
+            margin-left: auto;
+            max-width: 300px;
+        }
+
+        .fac-totales > div {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .fac-totales .fac-grande {
+            border-top: 2px solid #1e293b;
+            margin-top: 4px;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .fac-footer {
+            margin-top: 18px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+
+        @media print {
+            header, main, .modal-flotante-header, .modal-flotante-footer {
+                display: none !important;
+            }
+            #overlay-factura-portal.modal-overlay {
+                position: static !important;
+                display: block !important;
+                background: #fff !important;
+                padding: 0 !important;
+            }
+            #overlay-factura-portal .modal-flotante {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 id="welcome-msg">Portal de Gestión</h1>
+        <h1 id="welcome-msg">Mi Portal</h1>
         <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
     </header>
 
     <main>
-        <!-- GESTIÓN DE PEDIDOS -->
+        <!-- GESTIÓN DE PEDIDOS (solo los del cliente) -->
         <div class="card">
-            <h3>Gestión de Pedidos</h3>
-            <form id="form-pedido-basico">
+            <h3>Mis Pedidos</h3>
+            <form id="form-pedido-portal">
                 <div class="form-group">
-                    <label for="ped-basico-nombre">Nombre del Cliente</label>
-                    <input type="text" id="ped-basico-nombre" placeholder="Nombre y apellido" required>
+                    <label for="ped-portal-nombre">Nombre del Cliente</label>
+                    <input type="text" id="ped-portal-nombre" placeholder="Nombre y apellido" required>
                 </div>
                 <div class="form-group">
-                    <label for="ped-basico-identificacion">Identificación (Cédula o RIF)</label>
-                    <input type="text" id="ped-basico-identificacion" placeholder="Cédula o Identificación" required>
+                    <label for="ped-portal-identificacion">Identificación (Cédula o RIF)</label>
+                    <input type="text" id="ped-portal-identificacion" placeholder="Cédula o Identificación" required>
                 </div>
 
                 <hr>
                 <label style="display:block; margin-bottom:8px; font-weight:700; font-size:13px; color:#1e3a8a;">Productos Requeridos</label>
-                <div id="contenedor-productos-basico"></div>
-                <button type="button" id="btn-agregar-linea-basico" class="btn-agregar">+ Añadir otro producto</button>
+                <div id="contenedor-productos-portal"></div>
+                <button type="button" id="btn-agregar-linea-portal" class="btn-agregar">+ Añadir otro producto</button>
 
                 <button type="submit" class="btn-submit">Registrar Pedido</button>
             </form>
 
-            <h4>Pedidos recientes</h4>
+            <h4>Historial de mis pedidos</h4>
+            <div id="aviso-usuario-email" class="banner-aviso" hidden>
+                Falta configurar la base de datos. Ejecuta en Supabase (SQL Editor):
+                <code>ALTER TABLE public.pedidos ADD COLUMN IF NOT EXISTS usuario_email text;</code>
+            </div>
             <div style="overflow-x:auto;">
                 <table class="tabla">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Cliente</th>
-                            <th>Identificación</th>
+                            <th>Productos</th>
                             <th>Fecha</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-pedidos">
+                    <tbody id="tabla-pedidos-portal">
                         <tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ASIGNACIÓN DE TÉCNICOS -->
+        <!-- MIS FACTURAS -->
         <div class="card">
-            <h3>Asignación de Técnicos</h3>
-            <form id="form-asignacion-basico">
-                <div class="form-group">
-                    <label for="asig-pedido">Pedido</label>
-                    <select id="asig-pedido" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="asig-tecnico">Técnico</label>
-                    <select id="asig-tecnico" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="asig-producto">Producto a instalar</label>
-                    <select id="asig-producto" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="asig-cantidad">Cantidad</label>
-                    <input type="number" id="asig-cantidad" min="1" value="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="asig-fecha">Fecha de instalación</label>
-                    <input type="date" id="asig-fecha">
-                </div>
-                <div class="form-group">
-                    <label for="asig-observaciones">Observaciones</label>
-                    <textarea id="asig-observaciones" placeholder="Notas o instrucciones..."></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Asignar Técnico</button>
-            </form>
-
-            <h4>Asignaciones recientes</h4>
+            <h3>Mis Facturas</h3>
+            <p style="font-size:13px; color:#64748b; margin-bottom:14px;">Aquí puedes ver los comprobantes de lo que se te ha cobrado.</p>
             <div style="overflow-x:auto;">
                 <table class="tabla">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Técnico</th>
-                            <th>Producto</th>
+                            <th>Nº Factura</th>
                             <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th class="acciones">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-asignaciones">
+                    <tbody id="tabla-facturas-portal">
                         <tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Cargando...</td></tr>
                     </tbody>
                 </table>
@@ -304,15 +458,34 @@
         </div>
     </main>
 
+    <!-- MODAL VER FACTURA -->
+    <div id="overlay-factura-portal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-factura">
+        <div class="modal-flotante">
+            <div class="modal-flotante-header">
+                <h4 id="titulo-modal-factura">Mi Factura</h4>
+                <button type="button" class="modal-cerrar" onclick="cerrarModalFacturaPortal()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-flotante-body" id="contenido-factura-portal"></div>
+            <div class="modal-flotante-footer">
+                <button class="btn-logout" onclick="cerrarModalFacturaPortal()" style="background:#94a3b8;">Cerrar</button>
+                <button class="btn-submit" onclick="window.print()" style="width:auto; padding:10px 20px;">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Librería de Supabase y archivo de conexión -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="conexion.js"></script>
 
     <script>
         // ============================================
-        // ACCESO: SOLO USUARIOS BÁSICOS
+        // ACCESO: SOLO USUARIOS BÁSICOS (cada cliente ve solo lo suyo)
         // ============================================
-        function obtenerRolBasico() {
+        let usuarioEmail = "";
+        let usuarioNombre = "";
+        let productosPortal = [];
+
+        function obtenerRolPortal() {
             const r = (localStorage.getItem("userRole") || "").trim().toLowerCase();
             if (r === "admin") return "admin";
             if (r) return "basico";
@@ -320,7 +493,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const rol = obtenerRolBasico();
+            const rol = obtenerRolPortal();
 
             if (!rol) {
                 alert("No hay sesión activa. Inicia sesión.");
@@ -335,13 +508,22 @@
             }
 
             const usuarioData = JSON.parse(localStorage.getItem("usuarioLogueado") || "{}");
-            document.getElementById("welcome-msg").textContent = "Portal de Gestión: " + (usuarioData.email || "Usuario Básico");
+            usuarioEmail = usuarioData.email || "";
+            usuarioNombre = usuarioData.nombre || "";
 
-            await cargarProductosBasico();
-            agregarFilaBasico();
-            await cargarListaPedidos();
-            await cargarSelectsAsignacion();
-            await cargarListaAsignaciones();
+            document.getElementById("welcome-msg").textContent = "Mi Portal: " + (usuarioEmail || "Usuario Básico");
+            document.getElementById("ped-portal-nombre").value = usuarioNombre;
+
+            if (!usuarioEmail) {
+                alert("No se pudo identificar el correo del usuario.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            await cargarProductosPortal();
+            agregarFilaPortal();
+            await cargarMisPedidos();
+            await cargarMisFacturas();
         });
 
         document.getElementById("btn-logout").addEventListener("click", () => {
@@ -351,11 +533,9 @@
         });
 
         // ============================================
-        // GESTIÓN DE PEDIDOS
+        // GESTIÓN DE PEDIDOS (solo los del cliente)
         // ============================================
-        let productosBasico = [];
-
-        async function cargarProductosBasico() {
+        async function cargarProductosPortal() {
             const { data, error } = await supabaseClient
                 .from("productos")
                 .select("*")
@@ -365,26 +545,26 @@
                 console.error("Error al cargar productos:", error);
                 return;
             }
-            productosBasico = data || [];
+            productosPortal = data || [];
         }
 
-        function agregarFilaBasico() {
-            const contenedor = document.getElementById("contenedor-productos-basico");
+        function agregarFilaPortal() {
+            const contenedor = document.getElementById("contenedor-productos-portal");
             if (!contenedor) return;
 
             const div = document.createElement("div");
             div.className = "fila-prod";
             div.innerHTML = `
-                <select class="sel-prod-basico" required style="flex:2; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
+                <select class="sel-prod-portal" required style="flex:2; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
                     <option value="">Selecciona un producto</option>
-                    ${productosBasico.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock} - $${p.precio})</option>`).join("")}
+                    ${productosPortal.map(p => `<option value="${p.id}">${p.nombre} (Stock: ${p.stock} - $${p.precio})</option>`).join("")}
                 </select>
-                <input type="number" class="cant-prod-basico" min="1" value="1" required style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
-                <button type="button" class="btn-del-basico" style="background:#ef4444; color:white; border:none; padding:10px 12px; border-radius:6px; cursor:pointer;">✕</button>
+                <input type="number" class="cant-prod-portal" min="1" value="1" required style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
+                <button type="button" class="btn-del-portal" style="background:#ef4444; color:white; border:none; padding:10px 12px; border-radius:6px; cursor:pointer;">✕</button>
             `;
 
-            div.querySelector(".btn-del-basico").addEventListener("click", () => {
-                if (document.querySelectorAll("#contenedor-productos-basico .fila-prod").length > 1) {
+            div.querySelector(".btn-del-portal").addEventListener("click", () => {
+                if (document.querySelectorAll("#contenedor-productos-portal .fila-prod").length > 1) {
                     div.remove();
                 } else {
                     showToast("El pedido debe tener al menos un producto.", "error");
@@ -394,13 +574,13 @@
             contenedor.appendChild(div);
         }
 
-        document.getElementById("btn-agregar-linea-basico").addEventListener("click", agregarFilaBasico);
+        document.getElementById("btn-agregar-linea-portal").addEventListener("click", agregarFilaPortal);
 
-        document.getElementById("form-pedido-basico").addEventListener("submit", async (e) => {
+        document.getElementById("form-pedido-portal").addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const nombre = document.getElementById("ped-basico-nombre").value.trim();
-            const identificacion = document.getElementById("ped-basico-identificacion").value.trim();
+            const nombre = document.getElementById("ped-portal-nombre").value.trim();
+            const identificacion = document.getElementById("ped-portal-identificacion").value.trim();
 
             const palabras = nombre.split(/\s+/).filter(Boolean);
             if (palabras.length < 2) {
@@ -412,16 +592,16 @@
                 return;
             }
 
-            const filas = document.querySelectorAll("#contenedor-productos-basico .fila-prod");
+            const filas = document.querySelectorAll("#contenedor-productos-portal .fila-prod");
             const items = [];
 
             for (const fila of filas) {
-                const prodId = parseInt(fila.querySelector(".sel-prod-basico").value);
-                const cantidad = parseInt(fila.querySelector(".cant-prod-basico").value);
+                const prodId = parseInt(fila.querySelector(".sel-prod-portal").value);
+                const cantidad = parseInt(fila.querySelector(".cant-prod-portal").value);
 
                 if (!prodId || !cantidad || cantidad <= 0) continue;
 
-                const prod = productosBasico.find(p => p.id === prodId);
+                const prod = productosPortal.find(p => p.id === prodId);
                 if (prod && cantidad > prod.stock) {
                     showToast(`Stock insuficiente para ${prod.nombre}. Disponible: ${prod.stock}`, "error");
                     return;
@@ -439,7 +619,11 @@
 
             const { data: nuevoPedido, error: errPed } = await supabaseClient
                 .from("pedidos")
-                .insert([{ cliente_nombre: nombre, cliente_identificacion: identificacion }])
+                .insert([{
+                    cliente_nombre: nombre,
+                    cliente_identificacion: identificacion,
+                    usuario_email: usuarioEmail
+                }])
                 .select()
                 .single();
 
@@ -465,151 +649,175 @@
             }
 
             boton.disabled = false;
-            showToast("¡Pedido registrado y stock actualizado!", "success");
+            showToast("¡Pedido registrado correctamente!", "success");
 
             e.target.reset();
-            document.getElementById("contenedor-productos-basico").innerHTML = "";
-            await cargarProductosBasico();
-            agregarFilaBasico();
-            await cargarListaPedidos();
+            document.getElementById("ped-portal-nombre").value = usuarioNombre;
+            document.getElementById("contenedor-productos-portal").innerHTML = "";
+            await cargarProductosPortal();
+            agregarFilaPortal();
+            await cargarMisPedidos();
         });
 
-        async function cargarListaPedidos() {
-            const tbody = document.getElementById("tabla-pedidos");
+        async function cargarMisPedidos() {
+            const tbody = document.getElementById("tabla-pedidos-portal");
             if (!tbody) return;
 
             const { data: pedidos, error } = await supabaseClient
                 .from("pedidos")
-                .select("id, cliente_nombre, cliente_identificacion, created_at")
+                .select("*, detalle_pedidos(*, productos(nombre))")
+                .eq("usuario_email", usuarioEmail)
                 .order("id", { ascending: false })
-                .limit(10);
+                .limit(20);
 
             if (error) {
-                console.error("Error al cargar pedidos:", error);
+                if (/usuario_email/.test(error.message)) {
+                    document.getElementById("aviso-usuario-email").hidden = false;
+                }
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px; color:#b91c1c;">Error al cargar: ${error.message}</td></tr>`;
                 return;
             }
+
+            document.getElementById("aviso-usuario-email").hidden = true;
 
             if (!pedidos || pedidos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">No hay pedidos registrados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:16px; color:#64748b;">Aún no tienes pedidos.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = pedidos.map(p => `
-                <tr>
-                    <td>#${p.id}</td>
-                    <td>${p.cliente_nombre || "N/A"}</td>
-                    <td>${p.cliente_identificacion || "N/A"}</td>
-                    <td>${p.created_at ? new Date(p.created_at).toLocaleDateString() : "N/A"}</td>
-                </tr>
-            `).join("");
+            tbody.innerHTML = pedidos.map(p => {
+                const items = p.detalle_pedidos && p.detalle_pedidos.length > 0
+                    ? p.detalle_pedidos.map(d => `${d.cantidad}x ${d.productos?.nombre || 'Producto'}`).join(', ')
+                    : 'Sin detalles';
+                const fecha = p.created_at ? new Date(p.created_at).toLocaleDateString() : "N/A";
+                return `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>${p.cliente_nombre || "N/A"}</td>
+                        <td>${items}</td>
+                        <td>${fecha}</td>
+                    </tr>
+                `;
+            }).join("");
         }
 
         // ============================================
-        // ASIGNACIÓN DE TÉCNICOS
+        // MIS FACTURAS (solo las del cliente)
         // ============================================
-        async function cargarSelectsAsignacion() {
-            const [pedRes, tecRes, prodRes] = await Promise.all([
-                supabaseClient.from("pedidos").select("id, cliente_nombre").order("id", { ascending: false }).limit(50),
-                supabaseClient.from("tecnicos").select("id, nombre_completo").order("nombre_completo"),
-                supabaseClient.from("productos").select("id, nombre").order("nombre")
-            ]);
-
-            const selPedido = document.getElementById("asig-pedido");
-            selPedido.innerHTML = (pedRes.data || []).length
-                ? pedRes.data.map(p => `<option value="${p.id}">#${p.id} - ${p.cliente_nombre}</option>`).join("")
-                : '<option value="">No hay pedidos disponibles</option>';
-
-            const selTecnico = document.getElementById("asig-tecnico");
-            selTecnico.innerHTML = (tecRes.data || []).length
-                ? tecRes.data.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join("")
-                : '<option value="">No hay técnicos registrados</option>';
-
-            const selProducto = document.getElementById("asig-producto");
-            selProducto.innerHTML = (prodRes.data || []).length
-                ? prodRes.data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join("")
-                : '<option value="">No hay productos disponibles</option>';
-        }
-
-        document.getElementById("form-asignacion-basico").addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            const pedidoId = parseInt(document.getElementById("asig-pedido").value);
-            const tecnicoId = parseInt(document.getElementById("asig-tecnico").value);
-            const productoId = parseInt(document.getElementById("asig-producto").value);
-            const cantidad = parseInt(document.getElementById("asig-cantidad").value);
-            const fecha = document.getElementById("asig-fecha").value;
-            const observaciones = document.getElementById("asig-observaciones").value.trim();
-
-            if (!pedidoId || !tecnicoId || !productoId || !cantidad || cantidad <= 0) {
-                showToast("Completa pedido, técnico, producto y una cantidad válida.", "error");
-                return;
-            }
-
-            const datos = {
-                pedido_id: pedidoId,
-                tecnico_id: tecnicoId,
-                producto_id: productoId,
-                cantidad_instalada: cantidad,
-                observaciones: observaciones
-            };
-            if (fecha) datos.fecha_instalacion = fecha;
-
-            const boton = e.target.querySelector("button[type='submit']");
-            boton.disabled = true;
-
-            const { error } = await supabaseClient.from("instalaciones").insert([datos]);
-
-            boton.disabled = false;
-
-            if (error) {
-                showToast("Error al asignar técnico: " + error.message, "error");
-                return;
-            }
-
-            showToast("¡Técnico asignado con éxito!", "success");
-
-            e.target.reset();
-            document.getElementById("asig-cantidad").value = "1";
-            await cargarSelectsAsignacion();
-            await cargarListaAsignaciones();
-        });
-
-        async function cargarListaAsignaciones() {
-            const tbody = document.getElementById("tabla-asignaciones");
+        async function cargarMisFacturas() {
+            const tbody = document.getElementById("tabla-facturas-portal");
             if (!tbody) return;
 
-            const { data: asignaciones, error } = await supabaseClient
-                .from("instalaciones")
-                .select(`
-                    id,
-                    fecha_instalacion,
-                    cantidad_instalada,
-                    pedidos ( cliente_nombre ),
-                    tecnicos ( nombre_completo ),
-                    productos ( nombre )
-                `)
+            const { data: facturas, error } = await supabaseClient
+                .from("facturas")
+                .select("id, numero_factura, fecha_emision, total, estado, iva_porcentaje, subtotal, impuesto, pedido_id, pedidos(usuario_email)")
+                .eq("pedidos.usuario_email", usuarioEmail)
                 .order("id", { ascending: false })
-                .limit(10);
+                .limit(20);
 
             if (error) {
-                console.error("Error al cargar asignaciones:", error);
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px; color:#b91c1c;">Error al cargar facturas: ${error.message}</td></tr>`;
                 return;
             }
 
-            if (!asignaciones || asignaciones.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Sin asignaciones registradas.</td></tr>';
+            if (!facturas || facturas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">No tienes facturas aún. Serán generadas por el administrador cuando se cobre tu pedido.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = asignaciones.map(a => `
+            tbody.innerHTML = facturas.map(f => `
                 <tr>
-                    <td>#${a.id}</td>
-                    <td>${a.pedidos?.cliente_nombre || "N/A"}</td>
-                    <td>${a.tecnicos?.nombre_completo || "Sin asignar"}</td>
-                    <td>${a.productos?.nombre || "N/A"} x${a.cantidad_instalada}</td>
-                    <td>${a.fecha_instalacion || "N/A"}</td>
+                    <td><strong>${f.numero_factura}</strong></td>
+                    <td>${f.fecha_emision ? new Date(f.fecha_emision).toLocaleDateString() : "N/A"}</td>
+                    <td>$${Number(f.total).toFixed(2)}</td>
+                    <td><span class="badge">${f.estado || "emitida"}</span></td>
+                    <td class="acciones">
+                        <button class="btn-ver" onclick="verFacturaPortal(${f.id})">Ver Factura</button>
+                    </td>
                 </tr>
             `).join("");
+        }
+
+        async function verFacturaPortal(facturaId) {
+            const overlay = document.getElementById("overlay-factura-portal");
+            const contenedor = document.getElementById("contenido-factura-portal");
+
+            const { data: factura, error: errFac } = await supabaseClient
+                .from("facturas")
+                .select("*")
+                .eq("id", facturaId)
+                .single();
+
+            if (errFac) {
+                showToast("Error al cargar la factura: " + errFac.message, "error");
+                return;
+            }
+
+            const { data: detalles, error: errDet } = await supabaseClient
+                .from("factura_detalles")
+                .select("descripcion, cantidad, precio_unitario, subtotal")
+                .eq("factura_id", facturaId);
+
+            if (errDet) {
+                showToast("Error al cargar el detalle: " + errDet.message, "error");
+                return;
+            }
+
+            const filas = (detalles || []).map((d, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${d.descripcion || "Producto"}</td>
+                    <td>${d.cantidad}</td>
+                    <td>$${Number(d.precio_unitario).toFixed(2)}</td>
+                    <td>$${Number(d.subtotal).toFixed(2)}</td>
+                </tr>
+            `).join("");
+
+            contenedor.innerHTML = `
+                <div class="factura-imprimible">
+                    <div class="fac-encabezado">
+                        <div>
+                            <div class="fac-empresa">INNOVA</div>
+                            <div class="fac-sub">Sistemas y Soluciones Tecnológicas</div>
+                            <div class="fac-sub">Guayana, Venezuela</div>
+                        </div>
+                        <div class="fac-numero">
+                            <div class="fac-titulo">FACTURA</div>
+                            <div>Nº ${factura.numero_factura}</div>
+                            <div>${factura.fecha_emision ? new Date(factura.fecha_emision).toLocaleDateString() : "N/A"}</div>
+                        </div>
+                    </div>
+                    <div class="fac-cliente">
+                        <div><strong>Cliente:</strong> ${factura.cliente_nombre || "N/A"}</div>
+                        <div><strong>Identificación:</strong> ${factura.cliente_identificacion || "N/A"}</div>
+                        <div><strong>Pedido:</strong> #${factura.pedido_id || "N/A"}</div>
+                    </div>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col">Cant.</th>
+                                <th scope="col">Precio Unit.</th>
+                                <th scope="col">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filas}</tbody>
+                    </table>
+                    <div class="fac-totales">
+                        <div><span>Subtotal</span><span>$${Number(factura.subtotal).toFixed(2)}</span></div>
+                        <div><span>IVA (${factura.iva_porcentaje || 0}%)</span><span>$${Number(factura.impuesto).toFixed(2)}</span></div>
+                        <div class="fac-grande"><span>Total</span><span>$${Number(factura.total).toFixed(2)}</span></div>
+                    </div>
+                    <div class="fac-footer">Gracias por tu compra. Factura emitida por el sistema Innova.</div>
+                </div>
+            `;
+
+            overlay.classList.add("mostrar");
+        }
+
+        function cerrarModalFacturaPortal() {
+            document.getElementById("overlay-factura-portal").classList.remove("mostrar");
         }
     </script>
 

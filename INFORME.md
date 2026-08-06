@@ -201,3 +201,35 @@ create policy "insercion detalle facturas" on public.factura_detalles for insert
 - `styles.css` — estilos de modales flotantes.
 
 > Recordatorio: tras estos cambios, vuelve a subir el proyecto a GitHub con `git add .`, `git commit -m "..."` y `git push origin main`. Vercel redepliega solo.
+
+---
+
+## 7. Tercera revisión: portal 100% individual por cliente
+
+El **portal-cliente.html** ahora es **exclusivo de cada usuario básico**:
+
+- **Solo ve sus propios pedidos**: cada pedido creado desde el portal se guarda con el correo del usuario (`usuario_email`), y el historial se filtra por ese correo. Un cliente **no** ve los pedidos de los demás.
+- **Se eliminó la sección "Asignación de Técnicos"** del portal: la asignación de técnicos la hace únicamente el administrador desde `datos.html` (botón "Asignar Técnico" en cada instalación).
+- **Se eliminó el listado de asignaciones recientes** para el usuario básico.
+- **Nuevo: "Mis Facturas"** — el cliente ve los comprobantes de lo que se le está cobrando (misma factura imprimible del módulo de facturación, con botón Ver/Imprimir). Las facturas se filtran por el correo del usuario a través del pedido.
+
+### 7.1 Qué agregar en Supabase (obligatorio)
+
+Ejecuta esto en el **SQL Editor** para que el portal pueda vincular y filtrar los pedidos por usuario:
+
+```sql
+-- Vincular pedidos al usuario que los crea (portal individual por cliente)
+alter table public.pedidos add column if not exists usuario_email text;
+```
+
+> Sin esta columna, el portal muestra un aviso amarillo indicando que falta ejecutar el comando.
+
+### 7.2 Cómo funciona el filtrado
+
+- **Portal (usuario básico):** al crear un pedido se inserta `usuario_email = correo del usuario logueado`. El historial consulta `.eq("usuario_email", email)`. Las facturas se consultan con `.eq("pedidos.usuario_email", email)` (filtro sobre la relación con `pedidos`).
+- **Admin (`datos.html` y `form_facturacion.html`):** siguen viendo todo sin filtro.
+- Los pedidos creados por el admin o antes de este cambio no tienen `usuario_email`, por lo que **no aparecerán** en el portal del cliente. Si se desea vincularlos, actualizar la fila manualmente en Supabase (p. ej. `update pedidos set usuario_email = 'correo@cliente.com' where cliente_nombre = '...'`).
+
+### 7.3 Archivo modificado
+
+- `portal-cliente.html` — portal individual (mis pedidos + mis facturas), sin asignación de técnicos.
