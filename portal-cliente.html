@@ -51,6 +51,23 @@
             background-color: #dc2626;
         }
 
+        .btn-posventa {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-posventa:hover {
+            background-color: #dbeafe;
+        }
+
         main {
             flex: 1;
             max-width: 1000px;
@@ -388,7 +405,10 @@
 
     <header>
         <h1 id="welcome-msg">Mi Portal</h1>
-        <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <a href="posventa-clientes.html" class="btn-posventa">Encuesta Postventa</a>
+            <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
+        </div>
     </header>
 
     <main>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta Postventa - Innova</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #fff;
+            padding: 20px 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        header h1 {
+            font-size: 20px;
+            color: #2563eb;
+        }
+
+        header .enlace-volver {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        header .enlace-volver:hover {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 720px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card-encuesta {
+            background: #fff;
+            border-radius: 12px;
+            padding: 34px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-encuesta h2 {
+            margin: 0 0 6px;
+            color: #1e293b;
+            font-size: 22px;
+        }
+
+        .card-encuesta .subtitulo {
+            margin: 0 0 24px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .pregunta {
+            margin-bottom: 26px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .pregunta:last-of-type {
+            border-bottom: none;
+        }
+
+        .pregunta .titulo {
+            display: block;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .opciones-si-no {
+            display: flex;
+            gap: 22px;
+            margin-bottom: 12px;
+        }
+
+        .opciones-si-no label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .opciones-si-no input[type="radio"] {
+            width: auto;
+            margin-top: 0;
+            accent-color: #2563eb;
+        }
+
+        .detalle {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .detalle:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Estrellas 1-5 */
+        .estrellas {
+            display: flex;
+            gap: 8px;
+            font-size: 36px;
+            cursor: pointer;
+        }
+
+        .estrellas span {
+            color: #d1d5db;
+            transition: color 0.15s, transform 0.1s;
+            user-select: none;
+            line-height: 1;
+        }
+
+        .estrellas span.activa {
+            color: #f59e0b;
+        }
+
+        .estrellas span:hover {
+            transform: scale(1.15);
+        }
+
+        .lbl-satisfaccion {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-submit:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Encuesta Postventa</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="portal-cliente.html" class="enlace-volver">← Volver a Mi Portal</a>
+            <button class="btn-logout" id="btn-logout">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="card-encuesta">
+            <h2>Ayúdanos a mejorar</h2>
+            <p class="subtitulo">Tus respuestas son confidenciales y nos permiten mejorar el servicio.</p>
+
+            <form id="form-posventa">
+                <!-- Pregunta 1 -->
+                <div class="pregunta">
+                    <span class="titulo">1. ¿Existió algún inconveniente con su compra?</span>
+                    <div class="opciones-si-no">
+                        <label><input type="radio" name="inconveniente" value="1"> Sí</label>
+                        <label><input type="radio" name="inconveniente" value="0"> No</label>
+                    </div>
+                    <textarea id="inconveniente-detalle" class="detalle" placeholder="Si respondió Sí, describa brevemente el inconveniente (opcional)"></textarea>
+                </div>
+
+                <!-- Pregunta 2 -->
+                <div class="pregunta">
+                    <span class="titulo">2. Nivel de satisfacción de la atención de cajero</span>
+                    <div class="estrellas" id="estrellas-cajero" aria-label="Calificación de 1 a 5 estrellas">
+                        <span data-v="1" title="1 estrella">★</span>
+                        <span data-v="2" title="2 estrellas">★</span>
+                        <span data-v="3" title="3 estrellas">★</span>
+                        <span data-v="4" title="4 estrellas">★</span>
+                        <span data-v="5" title="5 estrellas">★</span>
+                    </div>
+                    <input type="hidden" id="satisfaccion-cajero" value="0">
+                    <div class="lbl-satisfaccion" id="lbl-estrellas">Selecciona de 1 (muy malo) a 5 (excelente)</div>
+                </div>
+
+                <!-- Pregunta 3 -->
+                <div class="pregunta">
+                    <span class="titulo">3. ¿Existió algún contratiempo durante su compra?</span>
+                    <div class="opciones-si-no">
+                        <label><input type="radio" name="contratiempo" value="1"> Sí</label>
+                        <label><input type="radio" name="contratiempo" value="0"> No</label>
+                    </div>
+                    <textarea id="contratiempo-detalle" class="detalle" placeholder="Si respondió Sí, describa el contratiempo (opcional)"></textarea>
+                </div>
+
+                <!-- Pregunta 4 -->
+                <div class="pregunta">
+                    <span class="titulo">4. Error de facturación: ¿el monto de su factura vino equivocado?</span>
+                    <div class="opciones-si-no">
+                        <label><input type="radio" name="errorfact" value="1"> Sí</label>
+                        <label><input type="radio" name="errorfact" value="0"> No</label>
+                    </div>
+                    <textarea id="errorfact-detalle" class="detalle" placeholder="Si respondió Sí, indique cuál era el monto correcto (opcional)"></textarea>
+                </div>
+
+                <!-- Pregunta 5 -->
+                <div class="pregunta">
+                    <span class="titulo">5. Observaciones adicionales</span>
+                    <textarea id="observaciones" class="detalle" placeholder="Cuéntenos cualquier otra sugerencia o comentario (opcional)"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Enviar Encuesta</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Librería de Supabase y archivo de conexión -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="conexion.js"></script>
+
+    <script>
+        // ============================================
+        // ACCESO: SOLO USUARIOS BÁSICOS
+        // ============================================
+        let usuarioId = null;
+        let usuarioEmail = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
+
+            if (!rol) {
+                alert("No hay sesión activa. Inicia sesión.");
+                window.location.href = "index.html";
+                return;
+            }
+            if (rol === "admin") {
+                alert("Esta sección es para clientes.");
+                window.location.href = "datos.html";
+                return;
+            }
+
+            const usuarioData = JSON.parse(localStorage.getItem("usuarioLogueado") || "{}");
+            usuarioId = usuarioData.id || null;
+            usuarioEmail = usuarioData.email || "";
+
+            if (!usuarioEmail) {
+                alert("No se pudo identificar el correo del usuario.");
+                window.location.href = "portal-cliente.html";
+            }
+        });
+
+        document.getElementById("btn-logout").addEventListener("click", () => {
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("usuarioLogueado");
+            window.location.href = "index.html";
+        });
+
+        // ============================================
+        // ESTRELLAS 1-5
+        // ============================================
+        const estrellas = document.querySelectorAll("#estrellas-cajero span");
+        const inputSat = document.getElementById("satisfaccion-cajero");
+        const lblEstrellas = document.getElementById("lbl-estrellas");
+
+        estrellas.forEach(span => {
+            span.addEventListener("click", () => {
+                const v = parseInt(span.dataset.v, 10);
+                inputSat.value = v;
+                estrellas.forEach(s => s.classList.toggle("activa", parseInt(s.dataset.v, 10) <= v));
+                lblEstrellas.textContent = "Calificación: " + v + " de 5";
+            });
+        });
+
+        // ============================================
+        // ENVÍO DEL CUESTIONARIO
+        // ============================================
+        document.getElementById("form-posventa").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const satisfaccion = parseInt(inputSat.value, 10);
+            if (satisfaccion < 1 || satisfaccion > 5) {
+                showToast("Selecciona el nivel de satisfacción (1 a 5 estrellas).", "error");
+                return;
+            }
+
+            const inconveniente = document.querySelector('input[name="inconveniente"]:checked');
+            const contratiempo = document.querySelector('input[name="contratiempo"]:checked');
+            const errorFact = document.querySelector('input[name="errorfact"]:checked');
+
+            const registro = {
+                usuario_id: usuarioId,
+                email: usuarioEmail,
+                inconveniente: inconveniente ? (inconveniente.value === "1") : null,
+                inconveniente_detalle: (inconveniente && inconveniente.value === "1")
+                    ? document.getElementById("inconveniente-detalle").value.trim() || null
+                    : null,
+                satisfaccion_cajero: satisfaccion,
+                contratiempo: contratiempo ? (contratiempo.value === "1") : null,
+                contratiempo_detalle: (contratiempo && contratiempo.value === "1")
+                    ? document.getElementById("contratiempo-detalle").value.trim() || null
+                    : null,
+                error_facturacion: errorFact ? (errorFact.value === "1") : null,
+                error_facturacion_detalle: (errorFact && errorFact.value === "1")
+                    ? document.getElementById("errorfact-detalle").value.trim() || null
+                    : null,
+                observaciones: document.getElementById("observaciones").value.trim() || null
+            };
+
+            const btn = e.target.querySelector("button[type='submit']");
+            btn.disabled = true;
+            showLoader(true);
+
+            const { error } = await supabaseClient.from("posventa").insert([registro]);
+
+            showLoader(false);
+            btn.disabled = false;
+
+            if (error) {
+                showToast("Error al enviar la encuesta: " + error.message, "error");
+                return;
+            }
+
+            showToast("¡Gracias por tu respuesta!", "success");
+            e.target.reset();
+            inputSat.value = 0;
+            lblEstrellas.textContent = "Selecciona de 1 (muy malo) a 5 (excelente)";
+            estrellas.forEach(s => s.classList.remove("activa"));
+        });
+    </script>
+
+</body>
+</html>

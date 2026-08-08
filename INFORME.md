@@ -265,3 +265,68 @@ alter table public.pedidos add column if not exists observacion_rechazo text;
 - `styles.css` — estilos de totales dentro del modal de factura.
 
 > Nota: los pedidos creados por el admin (sin `usuario_email`) pueden facturarse igual, pero la factura **no** aparecerá en ningún portal de cliente porque no hay correo vinculado.
+
+---
+
+## 9. Quinta revisión: módulo de postventa
+
+El módulo de **postventa** registra la satisfacción del cliente después de su compra. Son dos formularios:
+
+### 9.1 `posventa-clientes.html` (formulario del cliente)
+
+Accesible desde el portal del cliente (**"Encuesta Postventa"**, solo usuarios básicos). Captura automáticamente el **ID del usuario** y el **correo** de la sesión, y presenta el cuestionario:
+
+1. **¿Existió algún inconveniente con su compra?** — Sí/No + detalle opcional.
+2. **Nivel de satisfacción de la atención de cajero** — estrellas de 1 a 5.
+3. **¿Existió algún contratiempo durante su compra?** — Sí/No + detalle opcional.
+4. **Error de facturación: ¿el monto de su factura vino equivocado?** — Sí/No + detalle opcional (cuál era el monto correcto).
+5. **Observaciones adicionales** — texto libre.
+
+Al hacer clic en **Enviar** el registro se guarda en la tabla `posventa`.
+
+### 9.2 `posventa-admin.html` (panel del administrador)
+
+Accesible desde el menú **"Postventa"** del panel (solo admin). Muestra **todos los cuestionarios** con:
+
+- ID de la encuesta y fecha.
+- **ID del cliente** y **correo del cliente**.
+- Respuestas completas: inconveniente (+detalle), satisfacción (estrellas x/5), contratiempo (+detalle), error de facturación (+detalle) y observaciones.
+- Botón **Eliminar** por encuesta.
+- Banner de **verificación de base de datos** (avisa si falta la tabla `posventa`).
+
+### 9.3 Qué agregar en Supabase (obligatorio)
+
+```sql
+-- MÓDULO DE POSTVENTA
+create table if not exists public.posventa (
+  id bigint generated always as identity primary key,
+  usuario_id bigint references public.usuarios(id) on delete set null,
+  email text,
+  inconveniente boolean,
+  inconveniente_detalle text,
+  satisfaccion_cajero int check (satisfaccion_cajero between 1 and 5),
+  contratiempo boolean,
+  contratiempo_detalle text,
+  error_facturacion boolean,
+  error_facturacion_detalle text,
+  observaciones text,
+  created_at timestamptz not null default now()
+);
+
+-- Índice para consultar rápido por cliente
+create index if not exists idx_posventa_usuario on public.posventa(usuario_id);
+
+-- RLS (opcional, igual que el resto de tablas)
+alter table public.posventa enable row level security;
+create policy "lectura posventa" on public.posventa for select using (true);
+create policy "insercion posventa" on public.posventa for insert with check (true);
+create policy "borrado posventa" on public.posventa for delete using (true);
+```
+
+### 9.4 Archivos nuevos/modificados
+
+- **Nuevo:** `posventa-clientes.html` — cuestionario del cliente.
+- **Nuevo:** `posventa-admin.html` — panel del administrador.
+- `datos.html` — enlace "Postventa" en la barra de navegación.
+- `portal-cliente.html` — botón "Encuesta Postventa" en el encabezado.
+- `INFORME.md` — esta sección.

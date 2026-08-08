@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postventa - Administración | Innova</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- SDK de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-fact {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .brand span {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        .navbar-fact nav {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .navbar-fact nav a {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .navbar-fact nav a:hover {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .contenedor-fact {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            margin: 0 0 1.25rem;
+            color: #1e293b;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.75rem;
+        }
+
+        .banner {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .banner-cargando { background: #eff6ff; color: #1d4ed8; }
+        .banner-error { background: #fef2f2; color: #b91c1c; }
+        .banner-advertencia { background: #fffbeb; color: #92400e; }
+        .banner-exito { background: #ecfdf5; color: #065f46; }
+
+        .detalle-txt {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .tabla .acciones {
+            text-align: center;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <header class="navbar-fact">
+        <div class="brand">Innova <span>| Postventa</span></div>
+        <nav>
+            <a href="datos.html">Panel</a>
+            <a href="pedido.html">Pedidos</a>
+            <a href="form_facturacion.html">Facturación</a>
+            <button id="btn-logout" class="btn-logout">Salir</button>
+        </nav>
+    </header>
+
+    <div class="contenedor-fact">
+
+        <!-- VERIFICACIÓN DE BASE DE DATOS -->
+        <div id="db-status" class="banner banner-cargando">
+            <span id="db-status-msg">Verificando conexión con la base de datos...</span>
+        </div>
+
+        <!-- CUESTIONARIOS RECIBIDOS -->
+        <section class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:1rem;">
+                <h3 style="border:none; margin:0; padding:0;">Cuestionarios de Postventa</h3>
+                <button class="btn btn-secundario btn-sm" onclick="cargarEncuestas()">Actualizar</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">ID Cliente</th>
+                            <th scope="col">Correo del Cliente</th>
+                            <th scope="col">Inconveniente</th>
+                            <th scope="col">Satisfacción</th>
+                            <th scope="col">Contratiempo</th>
+                            <th scope="col">Error de Fact.</th>
+                            <th scope="col">Observaciones</th>
+                            <th scope="col" class="acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-posventa">
+                        <tr><td colspan="10" style="text-align:center; padding:20px; color:#64748b;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="conexion.js"></script>
+    <script>
+        // ============================================
+        // ACCESO: SOLO ADMINISTRADORES
+        // ============================================
+        document.addEventListener("DOMContentLoaded", async () => {
+            const rol = (localStorage.getItem("userRole") || "").trim().toLowerCase();
+
+            if (rol !== "admin") {
+                alert("Acceso denegado. Solo administradores.");
+                window.location.href = "portal-cliente.html";
+                return;
+            }
+
+            await verificarBaseDatos();
+            await cargarEncuestas();
+        });
+
+        document.getElementById("btn-logout").addEventListener("click", () => {
+            localStorage.removeItem("usuarioLogueado");
+            localStorage.removeItem("userRole");
+            window.location.href = "index.html";
+        });
+
+        // ============================================
+        // VERIFICACIÓN DE BASE DE DATOS
+        // ============================================
+        async function verificarBaseDatos() {
+            const banner = document.getElementById("db-status");
+            const msg = document.getElementById("db-status-msg");
+
+            const { error: errPos } = await supabaseClient.from("posventa").select("id").limit(1);
+
+            if (errPos) {
+                if (/posventa/.test(errPos.message)) {
+                    banner.className = "banner banner-advertencia";
+                    msg.innerHTML = "La base de datos responde, pero la tabla <b>posventa</b> no existe. " +
+                        "Ejecuta el script SQL indicado en el informe (INFORME.md, sección 9) en el Editor SQL de Supabase.";
+                } else {
+                    banner.className = "banner banner-error";
+                    msg.textContent = "No se pudo conectar con Supabase: " + errPos.message;
+                }
+                return;
+            }
+
+            banner.className = "banner banner-exito";
+            msg.textContent = "Conexión y tabla de posventa verificadas correctamente.";
+        }
+
+        // ============================================
+        // LISTADO DE CUESTIONARIOS
+        // ============================================
+        function siNo(valor) {
+            if (valor === null || valor === undefined) return "—";
+            return valor ? "Sí" : "No";
+        }
+
+        function estrellasTexto(n) {
+            const num = parseInt(n, 10);
+            if (!num || num < 1 || num > 5) return "—";
+            return "★".repeat(num) + "☆".repeat(5 - num) + ` (${num}/5)`;
+        }
+
+        async function cargarEncuestas() {
+            const tbody = document.getElementById("cuerpo-posventa");
+            if (!tbody) return;
+
+            const { data, error } = await supabaseClient
+                .from("posventa")
+                .select("*")
+                .order("id", { ascending: false })
+                .limit(100);
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#b91c1c;">Error al cargar: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px; color:#64748b;">Aún no hay encuestas de posventa.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(e => `
+                <tr>
+                    <td>#${e.id}</td>
+                    <td>${e.created_at ? new Date(e.created_at).toLocaleDateString() : "N/A"}</td>
+                    <td>${e.usuario_id || "—"}</td>
+                    <td>${e.email || "—"}</td>
+                    <td>${siNo(e.inconveniente)}${e.inconveniente_detalle ? `<div class="detalle-txt">${e.inconveniente_detalle}</div>` : ""}</td>
+                    <td>${estrellasTexto(e.satisfaccion_cajero)}</td>
+                    <td>${siNo(e.contratiempo)}${e.contratiempo_detalle ? `<div class="detalle-txt">${e.contratiempo_detalle}</div>` : ""}</td>
+                    <td>${siNo(e.error_facturacion)}${e.error_facturacion_detalle ? `<div class="detalle-txt">${e.error_facturacion_detalle}</div>` : ""}</td>
+                    <td style="max-width:220px;">${e.observaciones || "—"}</td>
+                    <td class="acciones">
+                        <button class="btn btn-exito btn-sm" onclick="eliminarEncuesta(${e.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        // ============================================
+        // ELIMINAR ENCUESTA
+        // ============================================
+        async function eliminarEncuesta(id) {
+            if (!confirm("¿Eliminar esta encuesta?")) return;
+
+            const { error } = await supabaseClient
+                .from("posventa")
+                .delete()
+                .eq("id", id);
+
+            if (error) {
+                showToast("Error al eliminar: " + error.message, "error");
+                return;
+            }
+
+            showToast("Encuesta eliminada correctamente.", "success");
+            cargarEncuestas();
+        }
+    </script>
+</body>
+</html>
